@@ -28,3 +28,9 @@ Install packages with npm
 ```bash
   npm run dev
 ```
+
+### Built With
+
+* [Tailwindcss](https://github.com/tailwindlabs/tailwindcss)
+* [SimpleXLSX](https://github.com/shuchkin/simplexlsx)
+* [Chart.css](https://github.com/ChartsCSS/charts.css)
