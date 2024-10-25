@@ -122,13 +122,9 @@ $exam = $results->fetchArray();
                             <?php } else if ($question['type'] == 'matching_pairs') { ?>
                                 <div class="inline-block text-xs px-1 py-0.5 rounded bg-sky-500">Matching Pairs</div>
                             <?php } ?>
-                            <form class="inline-block" action="?id=<?= $_GET['id'] ?>" method="post">
-                                <input type="hidden" name="question_id" value="<?= $question['id'] ?>">
-                                <input type="submit" value="Delete" name="delete" class="text-xs underline text-red-500 cursor-pointer">
-                            </form>
                         </div>
                         <div>
-                            <b>Question:</b> <?= $question['question_text'] ?>
+                            <b>Question:</b> <?= $question['question_text'] ?> (<?= $question['points'] ?>p)
                         </div>
                         <div>
                             <b>Correct Answer:</b> <?= $question['correct_answer'] ?>
