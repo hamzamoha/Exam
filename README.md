@@ -14,3 +14,17 @@ Install packages with npm
 
 - PHP
 - Sqlite Enabled in PHP
+
+## Usage
+
+### Run Local PHP Server on Port 8000 (http://localhost:8000/)
+
+```bash
+  npm run serve
+```
+
+### Start the Tailwind CLI build process
+
+```bash
+  npm run dev
+```
