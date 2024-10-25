@@ -1,7 +1,8 @@
 {
   "scripts": {
     "serve": "php -S 0.0.0.0:8000 -t public",
-    "dev": "npx tailwindcss -i input.css -o ./public/style.css --watch"
+    "dev": "npx tailwindcss -i input.css -o ./public/style.css --watch",
+    "build": "npx tailwindcss -i input.css -o ./public/style.css --minify"
   },
   "devDependencies": {
     "tailwindcss": "^3.4.13"

@@ -9,7 +9,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $db->exec("UPDATE exams SET visible = (visible + 1)%2 WHERE id = '$exam_id'");
     }
     if (isset($_POST['graded'])) {
-        $db->exec("UPDATE exams SET graded = (graded + 1)%2 WHERE id = '$exam_id'");
+        if($ungraded_count > 0) $db->exec("UPDATE exams SET graded = 0 WHERE id = '$exam_id'");
+        else $db->exec("UPDATE exams SET graded = (graded + 1)%2 WHERE id = '$exam_id'");
     }
 }
 $results = $db->query("SELECT * FROM exams left join (SELECT exam_id, count (Distinct student_id) count FROM submissions GROUP BY exam_id) s on id = s.exam_id left join (SELECT exam_id, count (*) q_count FROM questions GROUP BY exam_id) q on id = q.exam_id WHERE id = '$exam_id'");
@@ -89,21 +90,16 @@ $exam = $results->fetchArray();
                         Edit Questions
                     </a>
                     <form action="?id=<?= $exam['id'] ?>" method="post">
-                        <button type="submit" name="visible" class="group block py-2 text-sm px-5 rounded-full bg-sky-600 text-white flex items-center">
-                            <span class="icon-eye mr-2 text-white"></span>
+                        <button type="submit" name="visible" class="<?= $exam['visible'] == 1 ? "bg-sky-600 hover:bg-gray-400" : "bg-gray-400 hover:bg-sky-600" ?> group transition-all py-2 text-sm px-5 rounded-full text-white flex items-center">
+                            <span class="<?= $exam['visible'] == 1 ? "icon-eye" : "icon-eye-blocked" ?> mr-2 text-white group-hover:hidden"></span>
+                            <span class="<?= $exam['visible'] == 1 ? "icon-eye-blocked" : "icon-eye" ?> mr-2 text-white group-hover:block hidden"></span>
                             Visible
-                            <div class="<?= $exam['visible'] == 1 ? "bg-blue-400 pl-[14px] group-hover:bg-gray-400 group-hover:pl-0.5" : "bg-gray-400 group-hover:bg-blue-400 group-hover:pl-[14px]" ?> cursor-pointer h-3 w-6 rounded-full transition-all inline-block p-0.5 ml-2">
-                                <div class="h-2 w-2 bg-gray-700 rounded-full"></div>
-                            </div>
                         </button>
                     </form>
                     <form action="?id=<?= $exam['id'] ?>" method="post">
-                        <button type="submit" name="graded" class="group block py-2 text-sm px-5 rounded-full bg-indigo-600 text-white flex items-center">
+                        <button type="submit" name="graded" class="<?= $exam['graded'] == 1 ? "bg-indigo-600 hover:bg-gray-400" : "bg-gray-400 hover:bg-indigo-600" ?> group transition-all py-2 text-sm px-5 rounded-full text-white flex items-center">
                             <span class="icon-checkbox-checked mr-2 text-white"></span>
                             Graded
-                            <div class="<?= $exam['graded'] == 1 ? "bg-blue-400 pl-[14px] group-hover:bg-gray-400 group-hover:pl-0.5" : "bg-gray-400 group-hover:bg-blue-400 group-hover:pl-[14px]" ?> cursor-pointer h-3 w-6 rounded-full transition-all inline-block p-0.5 ml-2">
-                                <div class="h-2 w-2 bg-gray-700 rounded-full"></div>
-                            </div>
                         </button>
                     </form>
                     <a class="ml-auto group block py-2 text-sm px-5 rounded-full bg-emerald-500 text-white flex items-center" href="export.php?id=<?= $exam['id'] ?>">

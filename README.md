@@ -64,6 +64,12 @@ Install packages with npm
   npm run dev
 ```
 
+Or for Production:
+
+```bash
+  npm run build
+```
+
 ### Built With
 
 * [Tailwindcss](https://github.com/tailwindlabs/tailwindcss)
