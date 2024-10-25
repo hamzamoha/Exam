@@ -23,6 +23,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Grade Exam | Teacher</title>
     <link rel="stylesheet" href="/style.css">
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            document.querySelectorAll("input[type='range']").forEach(element => {
+                element.addEventListener("input", function() {
+                    let submission_id = element.getAttribute('name').substring(4);
+                    document.querySelector(`td div[data-submission-id='${submission_id}']`).innerHTML = element.value;
+                })
+            });
+            h
+        })
+    </script>
 </head>
 
 <body class="bg-slate-100">
@@ -44,18 +55,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <div>
                             <div class="text-lg"><b>Question: </b><?= $question['question_text'] ?></div>
                             <div class="text-gray-700"><b>Correct Answer: </b><span class="text-green-600"><?= $question['correct_answer'] ?></span></div>
-                            <table class="my-5">
+                            <table class="my-5 max-w-full w-[600px]">
                                 <thead>
                                     <tr>
-                                        <th class="px-3 py-1.5 border">Answer</th>
-                                        <th class="px-3 py-1.5 border">Score</th>
+                                        <th class="p-3 bg-slate-100 border">Answer</th>
+                                        <th class="p-3 bg-slate-100 border">Score</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <?php while ($submission = $submissions->fetchArray()) { ?>
                                         <tr>
-                                            <td class="px-3 py-1.5 border"><?= $submission['answer'] ?></td>
-                                            <td class="px-3 py-1.5 border">0 <input name="sub_<?= $submission['id'] ?>" type="range" min="0" max="<?= $question['points'] ?>" step="<?= $question['points'] / 4 ?>"> <?= $question['points'] ?></td>
+                                            <td class="px-4 py-3 border"><?= $submission['answer'] ?></td>
+                                            <td class="px-4 py-3 border">
+                                                <div class="font-bold text-lg text-center" data-submission-id="<?= $submission['id'] ?>"><?= round($question['points'] / 2, 2) ?></div>
+                                                <div class="flex gap-2">
+                                                    0 <input name="sub_<?= $submission['id'] ?>" type="range" min="0" max="<?= $question['points'] ?>" step="<?= $question['points'] / 4 ?>" class="flex-1"> <?= $question['points'] ?>
+                                                </div>
+                                            </td>
                                         </tr>
                                     <?php } ?>
                                 </tbody>

@@ -22,6 +22,7 @@
                 </tr>
             </tbody>
         </table>
+        <a href="/change-password.php" class="block text-center hover:bg-gray-100 px-3 py-2 mb-2">Changer le Mot de Passe</a>
         <form action="/logout.php" method="post" class="block w-full">
             <input type="submit" value="Logout" name="logout" class="block text-red-600 hover:bg-gray-100 cursor-pointer px-3 py-2 w-full">
         </form>

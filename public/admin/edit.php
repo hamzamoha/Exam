@@ -57,7 +57,7 @@ $questions = $db->query('SELECT * FROM questions WHERE exam_id = ' . $_GET['id']
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Edit Questions | <?= $exam['title'] ?> | Teacher Dashboard</title>
     <link rel="stylesheet" href="/style.css">
     <script>
         if (window.history.replaceState) window.history.replaceState(null, null, window.location.href);

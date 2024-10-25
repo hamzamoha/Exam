@@ -1,8 +1,6 @@
 <?php
 include "check-admin.php";
 $exam_id = SQLite3::escapeString($_GET['id']);
-$results = $db->query("SELECT * FROM exams left join (SELECT exam_id, count (Distinct student_id) count FROM submissions GROUP BY exam_id) s on id = s.exam_id left join (SELECT exam_id, count (*) q_count FROM questions GROUP BY exam_id) q on id = q.exam_id WHERE id = '$exam_id'");
-$exam = $results->fetchArray();
 $questions = $db->query("SELECT * FROM questions WHERE exam_id = '$exam_id'");
 $students_count = $db->query(query: 'SELECT count(*) c FROM students')->fetchArray()['c'];
 $ungraded_count = intval($db->query("SELECT count(*) c FROM submissions WHERE score = -1 AND exam_id = '$exam_id'")->fetchArray()['c']);
@@ -14,6 +12,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $db->exec("UPDATE exams SET graded = (graded + 1)%2 WHERE id = '$exam_id'");
     }
 }
+$results = $db->query("SELECT * FROM exams left join (SELECT exam_id, count (Distinct student_id) count FROM submissions GROUP BY exam_id) s on id = s.exam_id left join (SELECT exam_id, count (*) q_count FROM questions GROUP BY exam_id) q on id = q.exam_id WHERE id = '$exam_id'");
+$exam = $results->fetchArray();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -108,7 +108,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     </form>
                     <a class="ml-auto group block py-2 text-sm px-5 rounded-full bg-emerald-500 text-white flex items-center" href="export.php?id=<?= $exam['id'] ?>">
                         <span class="icon-file-excel mr-2 text-white"></span>
-                        Export CSV
+                        Export Students Answers as CSV
                     </a>
                 </div>
                 <hr class="my-5">
