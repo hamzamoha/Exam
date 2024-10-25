@@ -1,8 +1,8 @@
 <?php
 include "check-admin.php";
+$exam_id = SQLite3::escapeString($_GET['id']);
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (isset($_POST['question_text'])) {
-        $exam_id = SQLite3::escapeString($_GET['id']);
         $type = SQLite3::escapeString($_POST['type']);
         $question_text = SQLite3::escapeString($_POST['question_text']);
         $options = $correct_answer = null;
@@ -38,18 +38,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 }
             }
         }
-        header("location: /admin/edit.php?id=" . $_GET['id']);
     }
     if (isset($_POST['delete'])) {
         if (isset($_POST['question_id'])) {
             $id = SQLite3::escapeString($_POST['question_id']);
             $db->exec("DELETE FROM questions WHERE id = '$id'");
-            header("location: /admin/edit.php?id=" . $_GET['id']);
         }
     }
 }
-$results = $db->query('SELECT * FROM exams WHERE id = ' . $_GET['id']);
+$results = $db->query("SELECT * FROM exams left join (SELECT exam_id, count (Distinct student_id) count FROM submissions GROUP BY exam_id) s on id = s.exam_id left join (SELECT exam_id, count (*) q_count FROM questions GROUP BY exam_id) q on id = q.exam_id WHERE id = '$exam_id'");
 $exam = $results->fetchArray();
+$students_count = $db->query(query: 'SELECT count(*) c FROM students')->fetchArray()['c'];
 $questions = $db->query('SELECT * FROM questions WHERE exam_id = ' . $_GET['id']);
 ?>
 <!DOCTYPE html>
@@ -61,6 +60,7 @@ $questions = $db->query('SELECT * FROM questions WHERE exam_id = ' . $_GET['id']
     <title>Document</title>
     <link rel="stylesheet" href="/style.css">
     <script>
+        if (window.history.replaceState) window.history.replaceState(null, null, window.location.href);
         document.addEventListener("DOMContentLoaded", () => {
             document.question_form.type.forEach(e => {
                 e.addEventListener("change", () => {
@@ -82,6 +82,42 @@ $questions = $db->query('SELECT * FROM questions WHERE exam_id = ' . $_GET['id']
             <?php include "sidenav.php"; ?>
         </div>
         <div class="flex-1">
+            <div class="bg-white w-full p-8 rounded-xl flex items-center mb-5">
+                <div class="flex-1 font-bold">
+                    <h1 class="text-lg"><?= $exam['title'] ?></h1>
+                    <h2 class="text-sm text-gray-500">Created at: <?= explode(" ", $exam['created_at'])[0] ?></h2>
+                </div>
+                <div class="w-12 h-8">
+                    <div class="w-px bg-slate-400 h-full mx-auto"></div>
+                </div>
+                <div class="flex-1 font-bold flex items-center">
+                    <span class="icon-file-text p-4 text-blue-500"></span>
+                    <div>
+                        <div class="mb-1"><?= $exam['q_count'] ?? 0 ?> Questions</div>
+                        <div class="text-sm text-gray-500">Number of Questions</div>
+                    </div>
+                </div>
+                <div class="w-12 h-8">
+                    <div class="w-px bg-slate-400 h-full mx-auto"></div>
+                </div>
+                <div class="flex-1 font-bold flex items-center">
+                    <span class="icon-clock2 p-4 text-amber-500"></span>
+                    <div>
+                        <div class="mb-1"><?= $exam['duration_minutes'] ?> minutes</div>
+                        <div class="text-sm text-gray-500">Exam's Duration</div>
+                    </div>
+                </div>
+                <div class="w-12 h-8">
+                    <div class="w-px bg-slate-400 h-full mx-auto"></div>
+                </div>
+                <div class="flex-1 font-bold flex items-center">
+                    <span class="icon-user p-4 text-green-500"></span>
+                    <div>
+                        <div class="mb-1"><?= ($exam['count'] ?? 0) . ' / ' . $students_count ?></div>
+                        <div class="text-sm text-gray-500">Number of Participants</div>
+                    </div>
+                </div>
+            </div>
             <div class="bg-white p-5 rounded-xl">
                 <h1 class="text-3xl font-bold mb-2"><?= $exam['title'] ?></h1>
                 <?php
@@ -141,7 +177,7 @@ $questions = $db->query('SELECT * FROM questions WHERE exam_id = ' . $_GET['id']
                             <label for="question_text">Question Text</label><input class="flex-1 font-bold bg-slate-100 rounded-lg p-3 outline-none" type="text" name="question_text" placeholder="Question Text" id="question_text" required>
                             <label for="points">Points</label><input class="w-20 font-bold bg-slate-100 rounded-lg p-3 outline-none" value="1" type="number" min="0" max="20" step="0.25" name="points" placeholder="Points" id="points" required>
                         </div>
-                        <div class="flex gap-5 justify-center mb-5">
+                        <div class="flex gap-5 justify-center mb-5 py-2">
                             <div>
                                 <input class="peer hidden type_hidden" type="radio" id="type_mcq" name="type" value="mcq" required>
                                 <label class="rounded-full bg-indigo-400 px-4 py-3 cursor-pointer hover:bg-indigo-300 peer-checked:bg-indigo-600 text-white select-none" for="type_mcq">Multiple Choice</label>
@@ -190,65 +226,69 @@ $questions = $db->query('SELECT * FROM questions WHERE exam_id = ' . $_GET['id']
                             </div>
                         </div>
                         <div class="hidden" data-question-type="true_false">
-                            <div class="flex gap-1 justify-center items-center mb-2">
-                                <label for="true_t">True</label>
-                                <input type="radio" name="true_flase" id="true_t" value="true">
-                                <input type="radio" name="true_flase" id="false_f" value="false">
-                                <label for="false_f">False</label>
+                            <div class="flex gap-5 justify-center items-center my-5">
+                                <label for="true_t" class="cursor-pointer py-2 px-5 rounded-lg bg-slate-300 border hover:bg-slate-200 has-[:checked]:bg-teal-500 has-[:checked]:text-white">
+                                    <input type="radio" name="true_flase" id="true_t" value="true" class="hidden">
+                                    <span for="true_t">True</span>
+                                </label>
+                                <label for="false_f" class="cursor-pointer py-2 px-5 rounded-lg bg-slate-300 border hover:bg-slate-200 has-[:checked]:bg-teal-500 has-[:checked]:text-white">
+                                    <input type="radio" name="true_flase" id="false_f" value="false" class="hidden">
+                                    <span for="false_f">False</span>
+                                </label>
                             </div>
                         </div>
                         <div class="hidden" data-question-type="short_answer">
-                            <div class="flex gap-1 justify-center items-center mb-2">
+                            <div class="flex gap-2 justify-center items-center my-5">
                                 <label for="correct_answer">Correct Answer</label>
-                                <input type="text" name="correct_answer" id="correct_answer" placeholder="Correct Answer" class="bg-neutral-100 border border-neutral-200 shadow-xs py-1 px-0.5">
+                                <input type="text" name="correct_answer" id="correct_answer" placeholder="Correct Answer" class="block flex-1 font-bold bg-slate-100 rounded-lg p-3 outline-none">
                             </div>
                         </div>
                         <div class="hidden" data-question-type="matching_pairs">
-                            <table class="max-w-ful w-[550px] mx-auto mb-2 border-collapse border border-slate-500">
+                            <table class="max-w-ful w-[600px] mx-auto mb-2 border-collapse border border-slate-500">
                                 <thead>
                                     <tr>
-                                        <th class="px-2 py-1 border border-slate-600">Left</th>
-                                        <th class="px-2 py-1 border border-slate-600">Right</th>
+                                        <th class="px-1 py-2 border border-slate-600 text-lg font-bold">Left</th>
+                                        <th class="px-1 py-2 border border-slate-600 text-lg font-bold">Right</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <tr>
-                                        <td class="border border-slate-600">
-                                            <input type="text" class="bg-white px-3 py-2 w-full h-full outline-none" name="left_1" placeholder="Left...">
+                                        <td class="border border-slate-600 p-2">
+                                            <input type="text" class="p-3 w-full rounded h-full outline-none bg-slate-200 focus:bg-slate-100" name="left_1" placeholder="Left...">
                                         </td>
-                                        <td class="border border-slate-600">
-                                            <input type="text" class="bg-white px-3 py-2 w-full h-full outline-none" name="right_1" placeholder="Right...">
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td class="border border-slate-600">
-                                            <input type="text" class="bg-white px-3 py-2 w-full h-full outline-none" name="left_2" placeholder="Left...">
-                                        </td>
-                                        <td class="border border-slate-600">
-                                            <input type="text" class="bg-white px-3 py-2 w-full h-full outline-none" name="right_2" placeholder="Right...">
+                                        <td class="border border-slate-600 p-2">
+                                            <input type="text" class="p-3 w-full rounded h-full outline-none bg-slate-200 focus:bg-slate-100" name="right_1" placeholder="Right...">
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td class="border border-slate-600">
-                                            <input type="text" class="bg-white px-3 py-2 w-full h-full outline-none" name="left_3" placeholder="Left...">
+                                        <td class="border border-slate-600 p-2">
+                                            <input type="text" class="p-3 w-full rounded h-full outline-none bg-slate-200 focus:bg-slate-100" name="left_2" placeholder="Left...">
                                         </td>
-                                        <td class="border border-slate-600">
-                                            <input type="text" class="bg-white px-3 py-2 w-full h-full outline-none" name="right_3" placeholder="Right...">
+                                        <td class="border border-slate-600 p-2">
+                                            <input type="text" class="p-3 w-full rounded h-full outline-none bg-slate-200 focus:bg-slate-100" name="right_2" placeholder="Right...">
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td class="border border-slate-600">
-                                            <input type="text" class="bg-white px-3 py-2 w-full h-full outline-none" name="left_4" placeholder="Left...">
+                                        <td class="border border-slate-600 p-2">
+                                            <input type="text" class="p-3 w-full rounded h-full outline-none bg-slate-200 focus:bg-slate-100" name="left_3" placeholder="Left...">
                                         </td>
-                                        <td class="border border-slate-600">
-                                            <input type="text" class="bg-white px-3 py-2 w-full h-full outline-none" name="right_4" placeholder="Right...">
+                                        <td class="border border-slate-600 p-2">
+                                            <input type="text" class="p-3 w-full rounded h-full outline-none bg-slate-200 focus:bg-slate-100" name="right_3" placeholder="Right...">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="border border-slate-600 p-2">
+                                            <input type="text" class="p-3 w-full rounded h-full outline-none bg-slate-200 focus:bg-slate-100" name="left_4" placeholder="Left...">
+                                        </td>
+                                        <td class="border border-slate-600 p-2">
+                                            <input type="text" class="p-3 w-full rounded h-full outline-none bg-slate-200 focus:bg-slate-100" name="right_4" placeholder="Right...">
                                         </td>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
                         <div class="text-center">
-                            <button type="submit" class="rounded bg-sky-400 py-1 px-2">Submit</button>
+                            <button type="submit" class="rounded-full bg-sky-400 hover:bg-sky-300 py-2 px-6 font-bold">Submit</button>
                         </div>
                     </div>
                 </form>

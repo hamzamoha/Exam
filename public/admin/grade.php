@@ -12,7 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $db->exec("UPDATE submissions set score = '$value' WHERE id = '$key'");
         }
     }
-    header("location: /admin/grade.php?id=" . $_GET['id']);
+    exit(header("location: /admin/view.php?id=" . $_GET['id']));
 }
 ?>
 <!DOCTYPE html>

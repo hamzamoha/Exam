@@ -15,7 +15,7 @@ $gender_count = $db->query("SELECT gender, COUNT(*) AS count FROM students GROUP
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard | Teacher</title>
     <link rel="stylesheet" href="/style.css">
-    <link rel="stylesheet" href="../charts.min.css">
+    <link rel="stylesheet" href="/charts.min.css">
 </head>
 
 <body class="bg-slate-100">

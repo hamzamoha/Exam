@@ -25,8 +25,9 @@ $classes = $db->query('SELECT class FROM students group by class'); ?>
             <?php include "sidenav.php"; ?>
         </div>
         <div class="flex-1">
-            <div class="mb-5 flex items-center justify-end">
-                <a href="load-students.php" class="block py-2 px-4 rounded bg-slate-600 text-white font-medium hover:bg-slate-500 transition-all">Load Students</a>
+            <div class="flex mb-5 items-center p-5">
+                <h1 class="text-5xl font-bold">Students List</h1>
+                <a href="load-students.php" class="block ml-auto py-2 px-4 rounded bg-slate-600 text-white font-medium hover:bg-slate-500 transition-all">Load Students</a>
             </div>
             <form action="?" class="bg-white p-5 rounded-xl flex justify-center items-center text-center gap-5 mb-5">
                 <select name="class" id="class" class="py-2 px-2 w-32 bg-gray-200 rounded">

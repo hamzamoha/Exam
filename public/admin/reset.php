@@ -1,20 +1,18 @@
 <?php
 include "check-admin.php";
 if ($_SERVER['REQUEST_METHOD'] == 'POST')
-    if (isset($_POST['reset_db'])){
-        if(isset($_POST['students'])){
+    if (isset($_POST['reset_db'])) {
+        if (isset($_POST['students'])) {
             $db->exec("DELETE FROM sessions; DELETE FROM submissions; DELETE FROM students;");
             $db->exec("DELETE FROM SQLITE_SEQUENCE WHERE lower(name)='sessions' OR lower(name)='submissions' OR lower(name)='students';");
         }
-        if(isset($_POST['exams'])){
+        if (isset($_POST['exams'])) {
             $db->exec("DELETE FROM sessions; DELETE FROM submissions; DELETE FROM matching_pairs; DELETE FROM questions; DELETE FROM exams;");
             $db->exec("DELETE FROM SQLITE_SEQUENCE WHERE lower(name)='sessions' OR lower(name)='submissions' OR lower(name)='matching_pairs' OR lower(name)='questions' OR lower(name)='exams';");
         }
-    }
-    //     $db->exec("DELETE FROM submissions; DELETE FROM sessions; DELETE FROM matching_pairs; DELETE FROM questions; DELETE FROM exams; ");
-    // else if (isset($_POST['delete']))
-    //     if (isset($_POST['session_id']))
-    //         $db->exec("DELETE FROM sessions WHERE id = '" . SQLite3::escapeString($_POST['session_id']) . "'");
+    } else if (isset($_POST['delete']))
+        if (isset($_POST['session_id']))
+            $db->exec("DELETE FROM sessions WHERE id = '" . SQLite3::escapeString($_POST['session_id']) . "'");
 ?>
 
 <!DOCTYPE html>

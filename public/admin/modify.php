@@ -2,13 +2,13 @@
 include "check-admin.php";
 $exam_id = SQLite3::escapeString($_GET['id']);
 $results = $db->query("SELECT * FROM exams WHERE id = '$exam_id'");
-if (!($exam = $results->fetchArray()))  header("location: ./exams.php");
+if (!($exam = $results->fetchArray()))  exit(header("location: /admin/exams.php"));
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $title = SQLite3::escapeString($_POST['title']);
     $description = SQLite3::escapeString($_POST['description']);
     $duration_minutes = SQLite3::escapeString($_POST['duration']);
     $db->exec("UPDATE exams SET title = '$title', description = '$description', duration_minutes = '$duration_minutes' WHERE id = '$exam_id'");
-    header("location: ./view.php?id=$exam_id");
+    exit(header("location: /admin/view.php?id=$exam_id"));
 }
 ?>
 <!DOCTYPE html>
@@ -39,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         </div>
                         <div>
                             <div class="font-bold py-1 text-gray-500">Duration (in minutes)</div>
-                            <input name="duration" type="number" class="block w-full font-bold bg-slate-100 rounded-lg p-3 outline-none" value="<?= htmlspecialchars($exam['duration_minutes']) ?>">
+                            <input name="duration" type="number" class="block w-full font-bold bg-slate-100 rounded-lg p-3 outline-none" value="<?= htmlspecialchars($exam['duration_minutes']) ?>" required>
                         </div>
                     </div>
                     <div class="my-6">
