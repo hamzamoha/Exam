@@ -118,7 +118,7 @@ $questions = $db->query('SELECT * FROM questions WHERE exam_id = ' . $_GET['id']
                     </div>
                 </div>
             </div>
-            <div class="bg-white p-5 rounded-xl">
+            <div class="bg-white p-5 rounded-xl mb-5">
                 <h1 class="text-3xl font-bold mb-2"><?= $exam['title'] ?></h1>
                 <?php
                 while ($question = $questions->fetchArray()) { ?>
@@ -169,7 +169,8 @@ $questions = $db->query('SELECT * FROM questions WHERE exam_id = ' . $_GET['id']
                         <?php } ?>
                     </div>
                 <?php } ?>
-                <hr class="my-5">
+            </div>
+            <div class="bg-white p-5 rounded-xl">
                 <form name="question_form" action="?id=<?= $_GET['id'] ?>" method="post">
                     <h2 class="py-0.5 text-2xl">Add Question</h2>
                     <div>
