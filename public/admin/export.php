@@ -3,7 +3,7 @@ include "check-admin.php";
 $id = SQLite3::escapeString($_GET['id']);
 $students = $db->query("SELECT * FROM students");
 $questions = $db->query("SELECT * FROM questions WHERE exam_id = '$id' ORDER BY id ASC");
-header('Content-Type: text/csv');
+header('Content-Type: text/csv; charset=utf-8');
 header('Content-Disposition: attachment; filename="EXPORT_' . date("Y_m_d_H_i_s") . '.csv"');
 $line = ["Student Number", "First Name", "Last Name"];
 while ($question = $questions->fetchArray()) array_push($line, $question['question_text']);
