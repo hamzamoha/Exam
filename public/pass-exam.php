@@ -46,9 +46,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $questions->reset();
     header("location: /");
 }
-$questions_shuffled = [];
-while ($question = $questions->fetchArray()) $questions_shuffled[] = $question;
-shuffle($questions_shuffled);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -122,9 +119,9 @@ shuffle($questions_shuffled);
                     <hr class="my-5">
                     <form action="?id=<?= $exam_id ?>" method="post">
                         <?php $c = 1;
-                        foreach ($questions_shuffled as $c => $question) { ?>
+                        while ($question = $questions->fetchArray()) { ?>
                             <div class="py-2">
-                                <h2 class="text-xl mb-2"><b>Question <?= $c+1 ?>: </b><?= $question['question_text'] ?></h2>
+                                <h2 class="text-xl mb-2"><b>Question <?= $c++ ?>: </b><?= $question['question_text'] ?></h2>
                                 <?php if ($question['type'] == 'true_false') { ?>
                                     <div class="flex flex-wrap items-center gap-2 my-2">
                                         <label class="border bg-white rounded py-1.5 px-3 hover:bg-neutral-100 has-[:checked]:bg-neutral-600 has-[:checked]:text-white cursor-pointer" for="true_<?= $question['id'] ?>">
