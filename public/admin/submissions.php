@@ -39,7 +39,7 @@ $results = $db->query("SELECT $case id, first_name, last_name, student_number FR
                                 <th class="px-3 py-2.5 border border-gray-700">First Name</th>
                                 <th class="px-3 py-2.5 border border-gray-700">Last Name</th>
                                 <?php while ($graded_exam = $graded_exams->fetchArray()) { ?>
-                                    <th class="px-3 py-2.5 border border-gray-700"><?= $graded_exam['title'] ?></th>
+                                    <th class="px-3 py-2.5 border border-gray-700"><?= $graded_exam['title'] ?> <a href="/admin/export.php?id=<?= $graded_exam['id'] ?>&type=grade" class="group text-xs inline-block text-emerald-400"><span class="icon-file-excel"></span>csv</a></th>
                                 <?php }
                                 $graded_exams->reset(); ?>
                             </tr>
