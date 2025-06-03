@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         else $db->exec("UPDATE exams SET graded = (graded + 1)%2 WHERE id = '$exam_id'");
     }
 }
-$results = $db->query("SELECT * FROM exams left join (SELECT exam_id, count (Distinct student_id) count FROM submissions GROUP BY exam_id) s on id = s.exam_id left join (SELECT exam_id, count (*) q_count FROM questions GROUP BY exam_id) q on id = q.exam_id WHERE id = '$exam_id'");
+$results = $db->query("SELECT * FROM exams left join (SELECT exam_id, count (Distinct student_id) count FROM submissions GROUP BY exam_id) s on id = s.exam_id left join (SELECT exam_id, count (*) q_count, sum (points) p_sum FROM questions GROUP BY exam_id) q on id = q.exam_id WHERE id = '$exam_id'");
 $exam = $results->fetchArray();
 ?>
 <!DOCTYPE html>
@@ -60,6 +60,16 @@ $exam = $results->fetchArray();
                     <div>
                         <div class="mb-1"><?= $exam['duration_minutes'] ?> minutes</div>
                         <div class="text-sm text-gray-500">Exam's Duration</div>
+                    </div>
+                </div>
+                <div class="w-12 h-8">
+                    <div class="w-px bg-slate-400 h-full mx-auto"></div>
+                </div>
+                <div class="flex-1 font-bold flex items-center">
+                    <span class="icon-user p-4 text-green-500"></span>
+                    <div>
+                        <div class="mb-1"><?= $exam['p_sum'] ?> Points</div>
+                        <div class="text-sm text-gray-500">Sum of All Questions Points</div>
                     </div>
                 </div>
                 <div class="w-12 h-8">

@@ -46,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
     }
 }
-$results = $db->query("SELECT * FROM exams left join (SELECT exam_id, count (Distinct student_id) count FROM submissions GROUP BY exam_id) s on id = s.exam_id left join (SELECT exam_id, count (*) q_count FROM questions GROUP BY exam_id) q on id = q.exam_id WHERE id = '$exam_id'");
+$results = $db->query("SELECT * FROM exams left join (SELECT exam_id, count (Distinct student_id) count FROM submissions GROUP BY exam_id) s on id = s.exam_id left join (SELECT exam_id, count (*) q_count, sum (points) p_sum FROM questions GROUP BY exam_id) q on id = q.exam_id WHERE id = '$exam_id'");
 $exam = $results->fetchArray();
 $students_count = $db->query(query: 'SELECT count(*) c FROM students')->fetchArray()['c'];
 $questions = $db->query('SELECT * FROM questions WHERE exam_id = ' . $_GET['id']);
@@ -105,6 +105,16 @@ $questions = $db->query('SELECT * FROM questions WHERE exam_id = ' . $_GET['id']
                     <div>
                         <div class="mb-1"><?= $exam['duration_minutes'] ?> minutes</div>
                         <div class="text-sm text-gray-500">Exam's Duration</div>
+                    </div>
+                </div>
+                <div class="w-12 h-8">
+                    <div class="w-px bg-slate-400 h-full mx-auto"></div>
+                </div>
+                <div class="flex-1 font-bold flex items-center">
+                    <span class="icon-user p-4 text-green-500"></span>
+                    <div>
+                        <div class="mb-1"><?= $exam['p_sum'] ?> Points</div>
+                        <div class="text-sm text-gray-500">Sum of All Questions Points</div>
                     </div>
                 </div>
                 <div class="w-12 h-8">
@@ -201,28 +211,28 @@ $questions = $db->query('SELECT * FROM questions WHERE exam_id = ' . $_GET['id']
                                 <label for="choice_1" class="whitespace-nowrap">Choice 1 </label>
                                 <input class="block w-full font-bold bg-slate-100 rounded-lg p-3 outline-none" type="text" name="choice_1" id="choice_1" placeholder="Choice 1">
                                 <div class="text-center whitespace-nowrap">
-                                    <input type="radio" name="correct_choice" class="cursor-pointer accent-green-600 outline-none w-6 h-6" id="correct_choice_1" value="choice_1">
+                                    <input type="radio" name="correct_choice" required class="cursor-pointer accent-green-600 outline-none w-6 h-6" id="correct_choice_1" value="choice_1">
                                 </div>
                             </div>
                             <div class="flex gap-2 items-center my-5">
                                 <label for="choice_2" class="whitespace-nowrap">Choice 2 </label>
                                 <input class="block w-full font-bold bg-slate-100 rounded-lg p-3 outline-none" type="text" name="choice_2" id="choice_2" placeholder="Choice 2">
                                 <div class="text-center whitespace-nowrap">
-                                    <input type="radio" name="correct_choice" class="cursor-pointer accent-green-600 outline-none w-6 h-6" id="correct_choice_2" value="choice_2">
+                                    <input type="radio" name="correct_choice" required class="cursor-pointer accent-green-600 outline-none w-6 h-6" id="correct_choice_2" value="choice_2">
                                 </div>
                             </div>
                             <div class="flex gap-2 items-center my-5">
                                 <label for="choice_3" class="whitespace-nowrap">Choice 3 </label>
                                 <input class="block w-full font-bold bg-slate-100 rounded-lg p-3 outline-none" type="text" name="choice_3" id="choice_3" placeholder="Choice 3">
                                 <div class="text-center whitespace-nowrap">
-                                    <input type="radio" name="correct_choice" class="cursor-pointer accent-green-600 outline-none w-6 h-6" id="correct_choice_3" value="choice_3">
+                                    <input type="radio" name="correct_choice" required class="cursor-pointer accent-green-600 outline-none w-6 h-6" id="correct_choice_3" value="choice_3">
                                 </div>
                             </div>
                             <div class="flex gap-2 items-center my-5">
                                 <label for="choice_4" class="whitespace-nowrap">Choice 4 </label>
                                 <input class="block w-full font-bold bg-slate-100 rounded-lg p-3 outline-none" type="text" name="choice_4" id="choice_4" placeholder="Choice 4">
                                 <div class="text-center whitespace-nowrap">
-                                    <input type="radio" name="correct_choice" class="cursor-pointer accent-green-600 outline-none w-6 h-6" id="correct_choice_4" value="choice_4">
+                                    <input type="radio" name="correct_choice" required class="cursor-pointer accent-green-600 outline-none w-6 h-6" id="correct_choice_4" value="choice_4">
                                 </div>
                             </div>
                         </div>
