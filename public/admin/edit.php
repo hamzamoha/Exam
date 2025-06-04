@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $text = SQLite3::escapeString(trim($value));
                     $db->exec("INSERT INTO matching_pairs(question_id, text, parent_id) VALUES ($question_id, '$text', 0)");
                     $parent_id = $db->lastInsertRowID();
-                    $text = SQLite3::escapeString(trim($_POST["right_$index"]));
+                        $text = SQLite3::escapeString(trim($_POST["right_$index"]));
                     $db->exec("INSERT INTO matching_pairs(question_id, text, parent_id) VALUES ($question_id, '$text', $parent_id)");
                 }
             }
