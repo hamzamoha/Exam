@@ -2,9 +2,9 @@
 include "check-admin.php";
 if (isset($_GET['class'])) {
     $class = SQLite3::escapeString($_GET['class']);
-    $students = $db->query("SELECT * FROM students where class = '$class'");
+    $students = $db->query("SELECT * FROM students where class = '$class' AND class in (SELECT distinct class from teachers_class where teacher_id = '$teacher[id]')");
 }
-$classes = $db->query('SELECT class FROM students group by class'); ?>
+$classes = $db->query('SELECT class FROM students group by class having class in (SELECT distinct class from teachers_class where teacher_id = \'' . $teacher['id'] . '\')'); ?>
 <!DOCTYPE html>
 <html lang="en">
 

@@ -32,7 +32,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
-    <script>if (window.history.replaceState) window.history.replaceState(null, null, window.location.href);</script>
+    <script>
+        if (window.history.replaceState) window.history.replaceState(null, null, window.location.href);
+    </script>
 </head>
 
 <body>
@@ -41,8 +43,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $res = $db->query("SELECT * FROM students WHERE student_number = '" . SQLite3::escapeString($_SESSION['student']) . "'");
         if ($student = $res->fetchArray()) {
             $student_id = $student['id'];
-            $exams_topass = $db->query('SELECT * FROM exams WHERE visible = 1 AND id NOT IN (SELECT DISTINCT exam_id FROM submissions WHERE student_id = ' . $student['id'] . ')');
-            $exams_passed = $db->query("SELECT * FROM (SELECT exam_id, sum(score) s, sum(points) p FROM (SELECT question_id, score FROM submissions WHERE student_id = '$student_id') sub JOIN (SELECT id, exam_id, points FROM questions) qst ON question_id = id GROUP BY exam_id) JOIN exams ON exams.id = exam_id  WHERE exams.id IN (SELECT DISTINCT exam_id FROM submissions WHERE student_id = '$student_id')"); ?>
+            $exams_topass = $db->query('SELECT exams.*, class FROM exams LEFT JOIN exams_class ON exams.id = exam_id WHERE visible = 1 AND exam_id NOT IN (SELECT DISTINCT exam_id FROM submissions WHERE student_id = ' . $student['id'] . ') AND class = \'' . $student['class'] . '\'');
+            $exams_passed = $db->query("SELECT * FROM (SELECT exam_id, sum(score) s, sum(points) p FROM (SELECT question_id, score FROM submissions WHERE student_id = '$student_id') sub JOIN (SELECT id, exam_id, points FROM questions) qst ON question_id = id GROUP BY exam_id) JOIN exams ON exams.id = exam_id  WHERE exams.id IN (SELECT DISTINCT exam_id FROM submissions WHERE student_id = '$student_id') AND exams.id in (SELECT distinct exam_id FROM exams_class WHERE class = '$student[class]')"); ?>
             <?php include "topnav.php"; ?>
             <div class="p-5">
                 <div class="bg-gray-100 rounded-xl p-10 shadow-lg">

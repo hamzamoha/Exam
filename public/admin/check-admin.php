@@ -8,5 +8,5 @@ if (isset($_SESSION['teacher'])) {
     if (!$teacher) goto Red;
 } else {
     Red:
-    header("location: /admin/login.php");
+    exit(header("location: /admin/login.php"));
 }

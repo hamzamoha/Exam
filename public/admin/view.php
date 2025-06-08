@@ -1,20 +1,18 @@
 <?php
 include "check-admin.php";
 $exam_id = SQLite3::escapeString($_GET['id']);
+$results = $db->query("SELECT * FROM exams left join (SELECT exam_id, count (Distinct student_id) count FROM submissions GROUP BY exam_id) s on id = s.exam_id left join (SELECT exam_id, count (*) q_count, sum (points) p_sum FROM questions GROUP BY exam_id) q on id = q.exam_id WHERE id = '$exam_id'");
+$exam = $results->fetchArray();
+if (!$exam || $exam['teacher_id'] != $teacher['id']) exit(header("location: /admin/exams.php"));
 $questions = $db->query("SELECT * FROM questions WHERE exam_id = '$exam_id'");
 $students_count = $db->query(query: 'SELECT count(*) c FROM students')->fetchArray()['c'];
 $ungraded_count = intval($db->query("SELECT count(*) c FROM submissions WHERE score = -1 AND exam_id = '$exam_id'")->fetchArray()['c']);
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    if (isset($_POST['visible'])) {
-        $db->exec("UPDATE exams SET visible = (visible + 1)%2 WHERE id = '$exam_id'");
-    }
-    if (isset($_POST['graded'])) {
-        if($ungraded_count > 0) $db->exec("UPDATE exams SET graded = 0 WHERE id = '$exam_id'");
+    if (isset($_POST['visible'])) $db->exec("UPDATE exams SET visible = (visible + 1)%2 WHERE id = '$exam_id'");
+    if (isset($_POST['graded']))
+        if ($ungraded_count > 0) $db->exec("UPDATE exams SET graded = 0 WHERE id = '$exam_id'");
         else $db->exec("UPDATE exams SET graded = (graded + 1)%2 WHERE id = '$exam_id'");
-    }
 }
-$results = $db->query("SELECT * FROM exams left join (SELECT exam_id, count (Distinct student_id) count FROM submissions GROUP BY exam_id) s on id = s.exam_id left join (SELECT exam_id, count (*) q_count, sum (points) p_sum FROM questions GROUP BY exam_id) q on id = q.exam_id WHERE id = '$exam_id'");
-$exam = $results->fetchArray();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -37,49 +35,56 @@ $exam = $results->fetchArray();
             <?php include "sidenav.php"; ?>
         </div>
         <div class="flex-1">
-            <div class="bg-white w-full p-8 rounded-xl flex items-center mb-5">
-                <div class="flex-1 font-bold">
-                    <h1 class="text-lg"><?= $exam['title'] ?></h1>
-                    <h2 class="text-sm text-gray-500">Created at: <?= explode(" ", $exam['created_at'])[0] ?></h2>
-                </div>
-                <div class="w-12 h-8">
-                    <div class="w-px bg-slate-400 h-full mx-auto"></div>
-                </div>
-                <div class="flex-1 font-bold flex items-center">
-                    <span class="icon-file-text p-4 text-blue-500"></span>
-                    <div>
-                        <div class="mb-1"><?= $exam['q_count'] ?? 0 ?> Questions</div>
-                        <div class="text-sm text-gray-500">Number of Questions</div>
+
+            <div class="bg-white p-8 rounded-xl mb-5">
+                <div class="mb-5">
+                    <h1 class="text-2xl font-bold"><?= $exam['title'] ?></h1>
+                    <h2 class="text-base text-gray-500">Created at: <?= explode(" ", $exam['created_at'])[0] ?></h2>
+                    <div>Classes:
+                        <?php
+                        $exam_classes = $db->query("SELECT class FROM exams_class WHERE exam_id = '$exam_id'");
+                        while ($class = $exam_classes->fetchArray()) { ?>
+                            <span class="inline-block text-sm rounded border p-1 bg-gray-100"><?= $class['class'] ?></span>
+                        <?php } ?>
                     </div>
                 </div>
-                <div class="w-12 h-8">
-                    <div class="w-px bg-slate-400 h-full mx-auto"></div>
-                </div>
-                <div class="flex-1 font-bold flex items-center">
-                    <span class="icon-clock2 p-4 text-amber-500"></span>
-                    <div>
-                        <div class="mb-1"><?= $exam['duration_minutes'] ?> minutes</div>
-                        <div class="text-sm text-gray-500">Exam's Duration</div>
+                <div class="w-full flex items-center">
+                    <div class="flex-1 font-bold flex items-center">
+                        <span class="icon-file-text p-4 text-blue-500"></span>
+                        <div>
+                            <div class="mb-1"><?= $exam['q_count'] ?? 0 ?> Questions</div>
+                            <div class="text-sm text-gray-500">Number of Questions</div>
+                        </div>
                     </div>
-                </div>
-                <div class="w-12 h-8">
-                    <div class="w-px bg-slate-400 h-full mx-auto"></div>
-                </div>
-                <div class="flex-1 font-bold flex items-center">
-                    <span class="icon-user p-4 text-green-500"></span>
-                    <div>
-                        <div class="mb-1"><?= $exam['p_sum'] ?> Points</div>
-                        <div class="text-sm text-gray-500">Sum of All Questions Points</div>
+                    <div class="w-12 h-8">
+                        <div class="w-px bg-slate-400 h-full mx-auto"></div>
                     </div>
-                </div>
-                <div class="w-12 h-8">
-                    <div class="w-px bg-slate-400 h-full mx-auto"></div>
-                </div>
-                <div class="flex-1 font-bold flex items-center">
-                    <span class="icon-user p-4 text-green-500"></span>
-                    <div>
-                        <div class="mb-1"><?= ($exam['count'] ?? 0) . ' / ' . $students_count ?></div>
-                        <div class="text-sm text-gray-500">Number of Participants</div>
+                    <div class="flex-1 font-bold flex items-center">
+                        <span class="icon-clock2 p-4 text-amber-500"></span>
+                        <div>
+                            <div class="mb-1"><?= $exam['duration_minutes'] ?> minutes</div>
+                            <div class="text-sm text-gray-500">Exam's Duration</div>
+                        </div>
+                    </div>
+                    <div class="w-12 h-8">
+                        <div class="w-px bg-slate-400 h-full mx-auto"></div>
+                    </div>
+                    <div class="flex-1 font-bold flex items-center">
+                        <span class="icon-user p-4 text-green-500"></span>
+                        <div>
+                            <div class="mb-1"><?= $exam['p_sum'] ?? 0 ?> Points</div>
+                            <div class="text-sm text-gray-500">Exam's Points</div>
+                        </div>
+                    </div>
+                    <div class="w-12 h-8">
+                        <div class="w-px bg-slate-400 h-full mx-auto"></div>
+                    </div>
+                    <div class="flex-1 font-bold flex items-center">
+                        <span class="icon-user p-4 text-green-500"></span>
+                        <div>
+                            <div class="mb-1"><?= ($exam['count'] ?? 0) . ' / ' . $students_count ?></div>
+                            <div class="text-sm text-gray-500">Number of Participants</div>
+                        </div>
                     </div>
                 </div>
             </div>

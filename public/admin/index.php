@@ -1,7 +1,7 @@
 <?php
 include "check-admin.php";
 $students_count = $db->query(query: 'SELECT count(*) c FROM students')->fetchArray()['c'];
-$exams_count = $db->query(query: 'SELECT count(*) c FROM exams')->fetchArray()['c'];
+$exams_count = $db->query(query: 'SELECT count(*) c FROM exams where teacher_id = \'' . $teacher['id'] . "'")->fetchArray()['c'];
 $classes_count = $db->query(query: 'SELECT count(distinct class) c FROM students')->fetchArray()['c'];
 $age_count = $db->query("SELECT strftime('%Y', 'now') - strftime('%Y', date_of_birth) - (strftime('%m-%d', 'now') < strftime('%m-%d', date_of_birth)) AS age, COUNT(*) AS count FROM students GROUP BY age");
 $max = $db->query("SELECT MAX(student_count) AS max FROM (SELECT strftime('%Y', 'now') - strftime('%Y', date_of_birth) - (strftime('%m-%d', 'now') < strftime('%m-%d', date_of_birth)) AS age, COUNT(*) AS student_count FROM students GROUP BY age)")->fetchArray()['max'];

@@ -1,6 +1,6 @@
 <?php
 include "check-admin.php";
-$exams = $db->query('SELECT * FROM exams left join (SELECT exam_id, count (Distinct student_id) count FROM submissions GROUP BY exam_id) on id = exam_id');
+$exams = $db->query('SELECT * FROM exams left join (SELECT exam_id, count (Distinct student_id) count FROM submissions GROUP BY exam_id) on id = exam_id Where teacher_id = \'' . $teacher['id'] . "'");
 $students_count = $db->query(query: 'SELECT count(*) c FROM students')->fetchArray()['c'];
 ?>
 <!DOCTYPE html>

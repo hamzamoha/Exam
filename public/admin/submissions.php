@@ -1,13 +1,17 @@
 <?php
 include "check-admin.php";
-$case = "";
-$graded_exams = $db->query("SELECT id, title, points FROM exams JOIN (SELECT exam_id, sum(points) points FROM questions GROUP BY exam_id) ON id = exam_id WHERE graded = 1");
-while ($graded_exam = $graded_exams->fetchArray()) {
-    $id = $graded_exam['id'];
-    $case .= "MAX(CASE WHEN exam_id = $id THEN s ELSE -1 END) AS EXAM_$id, ";
+$classes = $db->query("SELECT distinct class FROM teachers_class WHERE teacher_id = '" . $teacher['id'] . "'");
+if (isset($_GET["class"])) {
+    $class = SQLite3::escapeString($_GET['class']);
+    $case = "";
+    $graded_exams = $db->query("SELECT id, title, points FROM exams JOIN (SELECT exam_id, sum(points) points FROM questions GROUP BY exam_id) ON id = exam_id WHERE graded = 1 and id in (select exam_id from exams_class where class = '$class')");
+    while ($graded_exam = $graded_exams->fetchArray()) {
+        $id = $graded_exam['id'];
+        $case .= "MAX(CASE WHEN exam_id = $id THEN s ELSE -1 END) AS EXAM_$id, ";
+    }
+    $graded_exams->reset();
+    $results = $db->query("SELECT $case id, first_name, last_name, student_number, class FROM students LEFT JOIN (SELECT exam_id, student_id, sum(score) as s FROM submissions GROUP BY student_id, exam_id) ON id = student_id GROUP BY id, first_name, last_name, student_number, class HAVING class = '$class'");
 }
-$graded_exams->reset();
-$results = $db->query("SELECT $case id, first_name, last_name, student_number FROM students LEFT JOIN (SELECT exam_id, student_id, count(*) as p, sum(score) as s FROM submissions GROUP BY student_id, exam_id) ON id = student_id GROUP BY id, first_name, last_name, student_number");
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -31,7 +35,20 @@ $results = $db->query("SELECT $case id, first_name, last_name, student_number FR
                 <h1 class="text-5xl font-bold">Results</h1>
             </div>
             <div class="bg-white p-5 rounded-xl">
-                <?php if ($graded_exams->fetchArray()) {
+                <form action="?" class="flex justify-center items-center text-center gap-5 mb-5">
+                    <select name="class" id="class" class="py-2 px-2 w-32 bg-gray-200 rounded">
+                        <option selected disabled>--</option>
+                        <?php while ($class1 = $classes->fetchArray()) { ?>
+                            <option value="<?= htmlspecialchars($class1['class']) ?>"><?= $class1['class'] ?></option>
+                        <?php } ?>
+                    </select>
+                    <button type="submit" class="py-2 px-4 rounded bg-teal-400">Search</button>
+                </form>
+                <script id="script99858">
+                    document.querySelector("select#class").value = "<?= $class ?>"
+                    document.querySelector("script#script99858").remove();
+                </script>
+                <?php if (isset($results) && $graded_exams->fetchArray()) {
                     $graded_exams->reset(); ?>
                     <table class="w-full text-sm text-left rtl:text-right text-gray-400">
                         <thead class="text-xs uppercase bg-gray-50 dark:bg-gray-700 text-gray-400">
@@ -39,7 +56,7 @@ $results = $db->query("SELECT $case id, first_name, last_name, student_number FR
                                 <th class="px-3 py-2.5 border border-gray-700">First Name</th>
                                 <th class="px-3 py-2.5 border border-gray-700">Last Name</th>
                                 <?php while ($graded_exam = $graded_exams->fetchArray()) { ?>
-                                    <th class="px-3 py-2.5 border border-gray-700"><?= $graded_exam['title'] ?> <a href="/admin/export.php?id=<?= $graded_exam['id'] ?>&type=grade" class="group text-xs inline-block text-emerald-400"><span class="icon-file-excel"></span>csv</a></th>
+                                    <th class="px-3 py-2.5 border border-gray-700"><?= $graded_exam['title'] ?> <a href="/admin/export.php?id=<?= $graded_exam['id'] ?>&class=<?= $class ?>&type=grade" class="group text-xs inline-block text-emerald-400"><span class="icon-file-excel"></span>csv</a></th>
                                 <?php }
                                 $graded_exams->reset(); ?>
                             </tr>

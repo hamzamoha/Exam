@@ -6,7 +6,7 @@ if (isset($_SESSION['teacher'])) {
     $id = SQLite3::escapeString($_SESSION['teacher']);
     $id = $db->query("SELECT id from teachers WHERE id = '$id'")->fetchArray();
     if ($id) {
-        header("location: /admin");
+        exit(header("location: /admin"));
     }
 }
 $err = 0;
@@ -18,6 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if ($user = $result->fetchArray()) {
             if ($user['password'] == $password) {
                 $_SESSION['teacher'] = $user['id'];
+                header("location: /admin");
             } else $err = 2; // pass
         } else $err = 1; // user
     }

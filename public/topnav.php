@@ -18,7 +18,7 @@
                 </tr>
                 <tr>
                     <th class="px-4 py-3 border">Classe</th>
-                    <td class="px-4 py-3 border">1APIC-5</td>
+                    <td class="px-4 py-3 border"><?= $student['class'] ?></td>
                 </tr>
             </tbody>
         </table>
