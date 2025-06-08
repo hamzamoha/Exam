@@ -5,7 +5,7 @@ $results = $db->query("SELECT * FROM exams left join (SELECT exam_id, count (Dis
 $exam = $results->fetchArray();
 if (!$exam || $exam['teacher_id'] != $teacher['id']) exit(header("location: /admin/exams.php"));
 $questions = $db->query("SELECT * FROM questions WHERE exam_id = '$exam_id'");
-$students_count = $db->query(query: 'SELECT count(*) c FROM students')->fetchArray()['c'];
+$students_count = $db->query(query: 'SELECT count(*) c FROM students WHERE class IN (SELECT class FROM exams_class WHERE exam_id = \'' . $exam_id . '\')')->fetchArray()['c'];
 $ungraded_count = intval($db->query("SELECT count(*) c FROM submissions WHERE score = -1 AND exam_id = '$exam_id'")->fetchArray()['c']);
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (isset($_POST['visible'])) $db->exec("UPDATE exams SET visible = (visible + 1)%2 WHERE id = '$exam_id'");
