@@ -44,8 +44,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if ($student = $res->fetchArray()) {
             $student_id = $student['id'];
             $exams_topass = $db->query('SELECT exams.*, class FROM exams LEFT JOIN exams_class ON exams.id = exam_id WHERE visible = 1 AND exam_id NOT IN (SELECT DISTINCT exam_id FROM submissions WHERE student_id = ' . $student['id'] . ') AND class = \'' . $student['class'] . '\'');
-            $exams_passed = $db->query("SELECT * FROM (SELECT exam_id, sum(score) s, sum(points) p FROM (SELECT question_id, score FROM submissions WHERE student_id = '$student_id') sub JOIN (SELECT id, exam_id, points FROM questions) qst ON question_id = id GROUP BY exam_id) JOIN exams ON exams.id = exam_id  WHERE exams.id IN (SELECT DISTINCT exam_id FROM submissions WHERE student_id = '$student_id') AND exams.id in (SELECT distinct exam_id FROM exams_class WHERE class = '$student[class]')"); ?>
-            <?php include "topnav.php"; ?>
+            $exams_passed = $db->query("SELECT * FROM (SELECT exam_id, sum(score) s, sum(points) p FROM (SELECT question_id, score FROM submissions WHERE student_id = '$student_id') sub JOIN (SELECT id, exam_id, points FROM questions) qst ON question_id = id GROUP BY exam_id) JOIN exams ON exams.id = exam_id  WHERE exams.id IN (SELECT DISTINCT exam_id FROM submissions WHERE student_id = '$student_id') AND exams.id in (SELECT distinct exam_id FROM exams_class WHERE class = '$student[class]')");
+            include "topnav.php"; ?>
             <div class="p-5">
                 <div class="bg-gray-100 rounded-xl p-10 shadow-lg">
                     <h2 class="text-4xl font-bold mb-5">Votre Examen</h2>
@@ -53,6 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <?php while ($exam = $exams_topass->fetchArray()) { ?>
                             <div class="border bg-white rounded p-3 border-slate-300 shadow">
                                 <h2 class="py-1 text-xl font-bold"><?= $exam['title'] ?></h2>
+                                <h3 class="font-semibold text-gray-500"><?= $subject ?></h3>
                                 <div class="py-1 text-slate-500"><?= date("d/m/Y", strtotime($exam['created_at'])) ?></div>
                                 <div class="text-right">
                                     <a class="bg-indigo-600 py-1 px-2 inline-block text-white rounded hover:bg-indigo-500 transition-all" href="pass-exam.php?id=<?= $exam['id'] ?>">Passer</a>
@@ -66,9 +67,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <div class="bg-slate-100 rounded-xl p-10 shadow-lg">
                     <h2 class="text-4xl font-bold mb-5">Votre Resultats</h2>
                     <div class="grid grid-cols-4 gap-8">
-                        <?php while ($exam = $exams_passed->fetchArray()) { ?>
+                        <?php while ($exam = $exams_passed->fetchArray()) {
+                            $subject = $db->query("SELECT subject FROM teachers WHERE id = '$exam[teacher_id]'")->fetchArray()['subject'] ?>
                             <div class="border bg-white rounded p-3 border-slate-300 shadow">
                                 <h2 class="py-1 text-xl font-bold"><?= $exam['title'] ?></h2>
+                                <h3 class="font-semibold text-gray-500"><?= $subject ?></h3>
                                 <div class="py-1 text-slate-500"><?= date("d/m/Y", strtotime($exam['created_at'])) ?></div>
                                 <div>
                                     <?php if ($exam['graded'] == 1) { ?>
