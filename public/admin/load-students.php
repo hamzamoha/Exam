@@ -36,7 +36,7 @@ if (isset($_GET['class'])) {
 }
 $classes = $db->query('SELECT class FROM students group by class'); ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 
 <head>
     <meta charset="UTF-8">

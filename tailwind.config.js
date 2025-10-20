@@ -3,7 +3,7 @@ module.exports = {
   content: ["./public/**/*.{html,php}"],
   theme: {
     fontFamily: {
-      'sans': ['Comfortaa', 'ui-sans-serif', 'system-ui']
+      'sans': ['NeoSansArabicRegular', 'ui-sans-serif', 'system-ui']
     }
   },
   plugins: [],

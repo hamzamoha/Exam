@@ -1,9 +1,9 @@
 <div class="bg-slate-700 px-10 relative">
     <ul class="flex">
         <li><a class="block py-4 px-8 bg-amber-300 font-bold" href="/admin">Dashboard</a></li>
-        <li class="ml-auto"><label for="user_info" class="select-none block py-4 cursor-pointer font-bold text-white px-3 hover:bg-white/10" href="#"><?= $teacher['full_name'] ?></label></li>
+        <li class="mr-auto"><label for="user_info" class="select-none block py-4 cursor-pointer font-bold text-white px-3 hover:bg-white/10" href="#"><?= $teacher['full_name'] ?></label></li>
     </ul>
-    <div class="absolute top-full right-10 p-2 bg-white shadow has-[:checked]:block hidden w-60">
+    <div class="absolute top-full left-10 p-2 bg-white shadow has-[:checked]:block hidden w-60">
         <input type="checkbox" id="user_info" class="hidden">
         <table class="mb-2 mx-auto text-center">
             <tbody>

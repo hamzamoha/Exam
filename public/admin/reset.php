@@ -11,12 +11,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST')
             $db->exec("DELETE FROM SQLITE_SEQUENCE WHERE lower(name)='sessions' OR lower(name)='submissions' OR lower(name)='matching_pairs' OR lower(name)='questions' OR lower(name)='exams';");
         }
     } else if (isset($_POST['delete']))
-        if (isset($_POST['session_id']))
+        if (isset($_POST['session_id'])){
             $db->exec("DELETE FROM sessions WHERE id = '" . SQLite3::escapeString($_POST['session_id']) . "'");
+            header("location: /admin/sessions.php")
+        }
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 
 <head>
     <meta charset="UTF-8">
@@ -41,6 +43,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST')
                 <div class="flex justify-center">
                     <table>
                         <tbody>
+                            <tr>
+                                <td class="px-2 py-4"><input type="checkbox" name="sessions" id="sessions" class="w-5 h-5 cursor-pointer"></td>
+                                <td class="px-2 py-4 text-xl">Sessions</td>
+                            </tr>
                             <tr>
                                 <td class="px-2 py-4"><input type="checkbox" name="students" id="students" class="w-5 h-5 cursor-pointer"></td>
                                 <td class="px-2 py-4 text-xl">Students</td>

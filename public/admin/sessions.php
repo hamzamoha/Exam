@@ -8,7 +8,7 @@ while ($session = $results->fetchArray()) {
 }
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 
 <head>
     <meta charset="UTF-8">

@@ -51,7 +51,7 @@ while ($question = $questions->fetchArray()) $questions_shuffled[] = $question;
 shuffle($questions_shuffled);
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 
 <head>
     <meta charset="UTF-8">
@@ -60,7 +60,7 @@ shuffle($questions_shuffled);
     <link rel="stylesheet" href="/style.css">
     <style>
         body {
-            background: url('/imgs/wall.jpg');
+            background: #ffffff;
         }
     </style>
     <script>
@@ -90,13 +90,13 @@ shuffle($questions_shuffled);
     <?php include "topnav.php"; ?>
     <div class="flex gap-10 p-10">
         <div class="w-52">
-            <div class="bg-white/95 p-2 mb-5">
-                <p class="text-center">Durée d'Examen</p>
+            <div class="bg-white border p-2 mb-5">
+                <p class="text-center text-xl">مدة الاختبار</p>
                 <p class="text-center py-2"><span class="text-3xl"><?= $exam['duration_minutes'] ?></span> mins</p>
             </div>
             <?php if (!$timesup) { ?>
-                <div class="bg-white/95 p-2 mb-5">
-                    <p class="text-center">Temps Restant</p>
+                <div class="bg-white border p-2 mb-5">
+                    <p class="text-center text-xl">الوقت المتبقي</p>
                     <p class="text-center py-2">
                         <span id="time_h" class="text-3xl"><?= intdiv($remaining_timestamp, 3600) ?></span>h
                         <span id="time_m" class="text-3xl"><?= intdiv($remaining_timestamp % 3600, 60) ?></span>m
@@ -104,8 +104,8 @@ shuffle($questions_shuffled);
                     </p>
                 </div>
             <?php } ?>
-            <div class="bg-white/95 p-2">
-                <p class="text-center">Commencer à</p>
+            <div class="bg-white border p-2">
+                <p class="text-center text-xl">توقيت البداية</p>
                 <p class="text-center py-2">
                     <span id="time_start" class="text-3xl"></span>
                 </p>
@@ -113,12 +113,12 @@ shuffle($questions_shuffled);
         </div>
         <div class="flex-1">
             <?php if ($timesup) { ?>
-                <div class="bg-white/95 rounded-xl py-20 px-10 text-6xl mb-5 text-center text-red-500 font-bold">
+                <div class="bg-white border py-20 px-10 text-6xl mb-5 text-center text-red-500 font-bold">
                     Le temps est écoulé
                 </div>
             <?php } else { ?>
-                <div class="bg-white/95 rounded-xl p-10">
-                    <h1 class="text-3xl font-bold mb-2"><?= $exam['title'] ?></h1>
+                <div <?= $exam['is_rtl'] == 0 ? 'dir="ltr" ' : "" ?>class="bg-white border p-10">
+                    <h1 class="text-3xl font-bold mb-2 text-[#ff8723]"><?= $exam['title'] ?></h1>
                     <hr class="my-5">
                     <form action="?id=<?= $exam_id ?>" method="post">
                         <?php $c = 1;

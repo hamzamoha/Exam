@@ -52,7 +52,7 @@ $students_count = $db->query(query: 'SELECT count(*) c FROM students WHERE class
 $questions = $db->query("SELECT * FROM questions WHERE exam_id = '$exam_id' order by id desc");
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 
 <head>
     <meta charset="UTF-8">

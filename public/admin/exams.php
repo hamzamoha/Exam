@@ -1,10 +1,9 @@
 <?php
 include "check-admin.php";
 $exams = $db->query('SELECT * FROM exams left join (SELECT exam_id, count (Distinct student_id) count FROM submissions GROUP BY exam_id) on id = exam_id Where teacher_id = \'' . $teacher['id'] . "'");
-$students_count = $db->query(query: 'SELECT count(*) c FROM students')->fetchArray()['c'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 
 <head>
     <meta charset="UTF-8">
@@ -31,19 +30,21 @@ $students_count = $db->query(query: 'SELECT count(*) c FROM students')->fetchArr
                         <thead class="text-xs uppercase bg-gray-50 dark:bg-gray-700 text-gray-400">
                             <tr>
                                 <th class="px-6 py-3">#</th>
-                                <th class="px-6 py-3">Title</th>
-                                <th class="px-6 py-3">Students Passed</th>
-                                <th class="px-6 py-3">Visible</th>
-                                <th class="px-6 py-3">Graded</th>
+                                <th class="px-6 py-3">الاختبار</th>
+                                <th class="px-6 py-3">عدد الممررين</th>
+                                <th class="px-6 py-3">فتح التمرير</th>
+                                <th class="px-6 py-3">تم التصحيح</th>
                                 <th class="px-6 py-3"></th>
                             </tr>
                         </thead>
                         <tbody>
-                            <?php while ($exam = $exams->fetchArray()) { ?>
+                            <?php while ($exam = $exams->fetchArray()) {
+                                $students_count = $db->query(query: 'SELECT count(*) c FROM students WHERE class in (SELECT class FROM exams_class WHERE exam_id = ' . $exam["id"] . ')')->fetchArray()['c'];
+                            ?>
                                 <tr class="border-b bg-gray-800 border-gray-700">
                                     <th class="px-6 py-4 font-medium whitespace-nowrap text-white"><?= $exam['id'] ?></th>
                                     <td class="px-6 py-4"><?= $exam['title'] ?></td>
-                                    <td class="px-6 py-4">
+                                    <td class="px-6 py-4" dir="ltr">
                                         <?= ($exam['count'] ?? 0) . ' / ' . $students_count ?>
                                     </td>
                                     <td class="px-6 py-4">

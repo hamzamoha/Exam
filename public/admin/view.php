@@ -1,11 +1,6 @@
 <?php
 include "check-admin.php";
 $exam_id = SQLite3::escapeString($_GET['id']);
-$results = $db->query("SELECT * FROM exams left join (SELECT exam_id, count (Distinct student_id) count FROM submissions GROUP BY exam_id) s on id = s.exam_id left join (SELECT exam_id, count (*) q_count, sum (points) p_sum FROM questions GROUP BY exam_id) q on id = q.exam_id WHERE id = '$exam_id'");
-$exam = $results->fetchArray();
-if (!$exam || $exam['teacher_id'] != $teacher['id']) exit(header("location: /admin/exams.php"));
-$questions = $db->query("SELECT * FROM questions WHERE exam_id = '$exam_id'");
-$students_count = $db->query(query: 'SELECT count(*) c FROM students WHERE class IN (SELECT class FROM exams_class WHERE exam_id = \'' . $exam_id . '\')')->fetchArray()['c'];
 $ungraded_count = intval($db->query("SELECT count(*) c FROM submissions WHERE score = -1 AND exam_id = '$exam_id'")->fetchArray()['c']);
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (isset($_POST['visible'])) $db->exec("UPDATE exams SET visible = (visible + 1)%2 WHERE id = '$exam_id'");
@@ -13,9 +8,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if ($ungraded_count > 0) $db->exec("UPDATE exams SET graded = 0 WHERE id = '$exam_id'");
         else $db->exec("UPDATE exams SET graded = (graded + 1)%2 WHERE id = '$exam_id'");
 }
+$results = $db->query("SELECT * FROM exams left join (SELECT exam_id, count (Distinct student_id) count FROM submissions GROUP BY exam_id) s on id = s.exam_id left join (SELECT exam_id, count (*) q_count, sum (points) p_sum FROM questions GROUP BY exam_id) q on id = q.exam_id WHERE id = '$exam_id'");
+$exam = $results->fetchArray();
+if (!$exam || $exam['teacher_id'] != $teacher['id']) exit(header("location: /admin/exams.php"));
+$questions = $db->query("SELECT * FROM questions WHERE exam_id = '$exam_id'");
+$students_count = $db->query(query: 'SELECT count(*) c FROM students WHERE class IN (SELECT class FROM exams_class WHERE exam_id = \'' . $exam_id . '\')')->fetchArray()['c'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 
 <head>
     <meta charset="UTF-8">
