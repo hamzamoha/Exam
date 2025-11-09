@@ -1,54 +1,54 @@
 <?php
 include "check-admin.php";
-$exam_id = SQLite3::escapeString($_GET['id']);
-$exam = $db->query("SELECT * FROM exams left join (SELECT exam_id, count (Distinct student_id) count FROM submissions GROUP BY exam_id) s on id = s.exam_id left join (SELECT exam_id, count (*) q_count, sum (points) p_sum FROM questions GROUP BY exam_id) q on id = q.exam_id WHERE id = '$exam_id'")->fetchArray();
+$exam_id = $db->real_escape_string($_GET['id']);
+$exam = $db->query("SELECT * FROM exams left join (SELECT exam_id, count(Distinct student_id) scount FROM submissions GROUP BY exam_id) s on exams.id = s.exam_id left join (SELECT exam_id, count(*) q_count, sum(points) p_sum FROM questions GROUP BY exam_id) q on exams.id = q.exam_id WHERE exams.id = '$exam_id'")->fetch_assoc();
 if (!$exam || $exam['teacher_id'] != $teacher['id']) exit(header("location: /admin/exams.php"));
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (isset($_POST['question_text'])) {
-        $type = SQLite3::escapeString($_POST['type']);
-        $question_text = SQLite3::escapeString($_POST['question_text']);
+        $type = $db->real_escape_string($_POST['type']);
+        $question_text = $db->real_escape_string($_POST['question_text']);
         $options = $correct_answer = null;
         switch ($type) {
             case 'mcq':
                 $options = json_encode([
-                    'options' => [SQLite3::escapeString($_POST['choice_1']), SQLite3::escapeString($_POST['choice_2']), SQLite3::escapeString($_POST['choice_3']), SQLite3::escapeString($_POST['choice_4'])]
+                    'options' => [$db->real_escape_string($_POST['choice_1']), $db->real_escape_string($_POST['choice_2']), $db->real_escape_string($_POST['choice_3']), $db->real_escape_string($_POST['choice_4'])]
                 ]);
-                $correct_answer = $_POST[$_POST['correct_choice']] ? SQLite3::escapeString($_POST[$_POST['correct_choice']]) : null;
+                $correct_answer = $_POST[$_POST['correct_choice']] ? $db->real_escape_string($_POST[$_POST['correct_choice']]) : null;
                 break;
             case 'true_false':
-                $correct_answer = $_POST["true_flase"] ? SQLite3::escapeString($_POST["true_flase"]) : null;
+                $correct_answer = $_POST["true_flase"] ? $db->real_escape_string($_POST["true_flase"]) : null;
                 break;
             case 'short_answer':
-                $correct_answer = $_POST["correct_answer"] ? SQLite3::escapeString($_POST["correct_answer"]) : null;
+                $correct_answer = $_POST["correct_answer"] ? $db->real_escape_string($_POST["correct_answer"]) : null;
                 break;
             case 'matching_pairs':
                 // just in case
                 break;
         }
-        $points = floatval($_POST['points']) ? SQLite3::escapeString(floatval($_POST['points'])) : 1;
-        $db->exec("INSERT INTO questions (exam_id, type, question_text, options, correct_answer, points) VALUES ('$exam_id', '$type', '$question_text', '$options', '$correct_answer', '$points')");
+        $points = floatval($_POST['points']) ? $db->real_escape_string(floatval($_POST['points'])) : 1;
+        $db->execute_query("INSERT INTO questions (exam_id, type, question_text, options, correct_answer, points) VALUES ('$exam_id', '$type', '$question_text', '$options', '$correct_answer', '$points')");
         if ($type == "matching_pairs") {
             $question_id = $db->lastInsertRowID();
             foreach ($_POST as $key => $value) {
                 if (preg_match("/^left_\d+$/i", $key)) {
                     $index = substr($key, 5);
-                    $text = SQLite3::escapeString(trim($value));
-                    $db->exec("INSERT INTO matching_pairs(question_id, text, parent_id) VALUES ($question_id, '$text', 0)");
+                    $text = $db->real_escape_string(trim($value));
+                    $db->execute_query("INSERT INTO matching_pairs(question_id, text, parent_id) VALUES ($question_id, '$text', 0)");
                     $parent_id = $db->lastInsertRowID();
-                    $text = SQLite3::escapeString(trim($_POST["right_$index"]));
-                    $db->exec("INSERT INTO matching_pairs(question_id, text, parent_id) VALUES ($question_id, '$text', $parent_id)");
+                    $text = $db->real_escape_string(trim($_POST["right_$index"]));
+                    $db->execute_query("INSERT INTO matching_pairs(question_id, text, parent_id) VALUES ($question_id, '$text', $parent_id)");
                 }
             }
         }
     }
     if (isset($_POST['delete']))
         if (isset($_POST['question_id'])) {
-            $id = SQLite3::escapeString($_POST['question_id']);
-            $db->exec("DELETE FROM questions WHERE id = '$id'");
+            $id = $db->real_escape_string($_POST['question_id']);
+            $db->execute_query("DELETE FROM questions WHERE id = '$id'");
         }
 }
-$exam = $db->query("SELECT * FROM exams left join (SELECT exam_id, count (Distinct student_id) count FROM submissions GROUP BY exam_id) s on id = s.exam_id left join (SELECT exam_id, count (*) q_count, sum (points) p_sum FROM questions GROUP BY exam_id) q on id = q.exam_id WHERE id = '$exam_id'")->fetchArray();
-$students_count = $db->query(query: 'SELECT count(*) c FROM students WHERE class IN (SELECT class FROM exams_class WHERE exam_id = \'' . $exam_id . '\')')->fetchArray()['c'];
+$exam = $db->query("SELECT * FROM exams left join (SELECT exam_id, count(Distinct student_id) scount FROM submissions GROUP BY exam_id) s on exams.id = s.exam_id left join (SELECT exam_id, count(*) q_count, sum(points) p_sum FROM questions GROUP BY exam_id) q on exams.id = q.exam_id WHERE exams.id = '$exam_id'")->fetch_assoc();
+$students_count = $db->query(query: 'SELECT count(*) c FROM students WHERE class IN (SELECT class FROM exams_class WHERE exam_id = \'' . $exam_id . '\')')->fetch_assoc()['c'];
 $questions = $db->query("SELECT * FROM questions WHERE exam_id = '$exam_id' order by id desc");
 ?>
 <!DOCTYPE html>
@@ -89,7 +89,7 @@ $questions = $db->query("SELECT * FROM questions WHERE exam_id = '$exam_id' orde
                     <div>Classes:
                         <?php
                         $exam_classes = $db->query("SELECT class FROM exams_class WHERE exam_id = '$exam_id'");
-                        while ($class = $exam_classes->fetchArray()) { ?>
+                        while ($class = $exam_classes->fetch_assoc()) { ?>
                             <span class="inline-block text-sm rounded border p-1 bg-gray-100"><?= $class['class'] ?></span>
                         <?php } ?>
                     </div>
@@ -128,7 +128,7 @@ $questions = $db->query("SELECT * FROM questions WHERE exam_id = '$exam_id' orde
                     <div class="flex-1 font-bold flex items-center">
                         <span class="icon-user p-4 text-green-500"></span>
                         <div>
-                            <div class="mb-1"><?= ($exam['count'] ?? 0) . ' / ' . $students_count ?></div>
+                            <div class="mb-1"><?= ($exam['scount'] ?? 0) . ' / ' . $students_count ?></div>
                             <div class="text-sm text-gray-500">Number of Participants</div>
                         </div>
                     </div>
@@ -261,9 +261,9 @@ $questions = $db->query("SELECT * FROM questions WHERE exam_id = '$exam_id' orde
             <div class="bg-white p-5 rounded-xl">
                 <h1 class="text-2xl font-bold mb-2">Questions</h1>
                 <?php
-                while ($question = $questions->fetchArray()) { ?>
+                while ($question = $questions->fetch_assoc()) { ?>
                     <div class="p-2 my-4 rounded border relative">
-                        <form class="block absolute top-2 right-2" action="?id=<?= $_GET['id'] ?>" method="post">
+                        <form class="block absolute top-2 left-2" action="?id=<?= $_GET['id'] ?>" method="post">
                             <input type="hidden" name="question_id" value="<?= $question['id'] ?>">
                             <button type="submit" value="Delete" name="delete" class="text-white bg-red-500 cursor-pointer w-5 h-5 flex items-center justify-center text-center rounded">x</button>
                         </form>
@@ -292,7 +292,7 @@ $questions = $db->query("SELECT * FROM questions WHERE exam_id = '$exam_id' orde
                         <?php if ($question['type'] == 'matching_pairs') {
                             $pairs = [];
                             $pairss = $db->query("SELECT * FROM matching_pairs WHERE question_id = " . $question['id']);
-                            while ($pair = $pairss->fetchArray()) {
+                            while ($pair = $pairss->fetch_assoc()) {
                                 $pairs[$pair['id']] = $pair;
                             }
                         ?>

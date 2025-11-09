@@ -1,18 +1,18 @@
 <?php
 include "check-admin.php";
-$exam_id = SQLite3::escapeString($_GET['id']);
-$ungraded_count = intval($db->query("SELECT count(*) c FROM submissions WHERE score = -1 AND exam_id = '$exam_id'")->fetchArray()['c']);
+$exam_id = $db->real_escape_string($_GET['id']);
+$ungraded_count = intval($db->query("SELECT count(*) c FROM submissions WHERE score = -1 AND exam_id = '$exam_id'")->fetch_assoc()['c']);
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    if (isset($_POST['visible'])) $db->exec("UPDATE exams SET visible = (visible + 1)%2 WHERE id = '$exam_id'");
+    if (isset($_POST['visible'])) $db->execute_query("UPDATE exams SET visible = (visible + 1)%2 WHERE id = '$exam_id'");
     if (isset($_POST['graded']))
-        if ($ungraded_count > 0) $db->exec("UPDATE exams SET graded = 0 WHERE id = '$exam_id'");
-        else $db->exec("UPDATE exams SET graded = (graded + 1)%2 WHERE id = '$exam_id'");
+        if ($ungraded_count > 0) $db->execute_query("UPDATE exams SET graded = 0 WHERE id = '$exam_id'");
+        else $db->execute_query("UPDATE exams SET graded = (graded + 1)%2 WHERE id = '$exam_id'");
 }
-$results = $db->query("SELECT * FROM exams left join (SELECT exam_id, count (Distinct student_id) count FROM submissions GROUP BY exam_id) s on id = s.exam_id left join (SELECT exam_id, count (*) q_count, sum (points) p_sum FROM questions GROUP BY exam_id) q on id = q.exam_id WHERE id = '$exam_id'");
-$exam = $results->fetchArray();
+$results = $db->query("SELECT * FROM exams left join (SELECT exam_id, count(Distinct student_id) scount FROM submissions GROUP BY exam_id) as s on exams.id = s.exam_id left join (SELECT exam_id, count(*) q_count, sum(points) p_sum FROM questions GROUP BY exam_id) as q on exams.id = q.exam_id WHERE exams.id = '$exam_id'");
+$exam = $results->fetch_assoc();
 if (!$exam || $exam['teacher_id'] != $teacher['id']) exit(header("location: /admin/exams.php"));
 $questions = $db->query("SELECT * FROM questions WHERE exam_id = '$exam_id'");
-$students_count = $db->query(query: 'SELECT count(*) c FROM students WHERE class IN (SELECT class FROM exams_class WHERE exam_id = \'' . $exam_id . '\')')->fetchArray()['c'];
+$students_count = $db->query(query: 'SELECT count(*) c FROM students WHERE class IN (SELECT class FROM exams_class WHERE exam_id = \'' . $exam_id . '\')')->fetch_assoc()['c'];
 ?>
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -43,7 +43,7 @@ $students_count = $db->query(query: 'SELECT count(*) c FROM students WHERE class
                     <div>Classes:
                         <?php
                         $exam_classes = $db->query("SELECT class FROM exams_class WHERE exam_id = '$exam_id'");
-                        while ($class = $exam_classes->fetchArray()) { ?>
+                        while ($class = $exam_classes->fetch_assoc()) { ?>
                             <span class="inline-block text-sm rounded border p-1 bg-gray-100"><?= $class['class'] ?></span>
                         <?php } ?>
                     </div>
@@ -82,7 +82,7 @@ $students_count = $db->query(query: 'SELECT count(*) c FROM students WHERE class
                     <div class="flex-1 font-bold flex items-center">
                         <span class="icon-user p-4 text-green-500"></span>
                         <div>
-                            <div class="mb-1"><?= ($exam['count'] ?? 0) . ' / ' . $students_count ?></div>
+                            <div class="mb-1"><?= ($exam['scount'] ?? 0) . ' / ' . $students_count ?></div>
                             <div class="text-sm text-gray-500">Number of Participants</div>
                         </div>
                     </div>
@@ -117,7 +117,7 @@ $students_count = $db->query(query: 'SELECT count(*) c FROM students WHERE class
                             Graded
                         </button>
                     </form>
-                    <a class="ml-auto group block py-2 text-sm px-5 rounded-full bg-emerald-500 text-white flex items-center" href="export.php?id=<?= $exam['id'] ?>">
+                    <a class="ml-auto group py-2 text-sm px-5 rounded-full bg-emerald-500 text-white flex items-center" href="export.php?id=<?= $exam['id'] ?>">
                         <span class="icon-file-excel mr-2 text-white"></span>
                         Export Students Answers as CSV
                     </a>
@@ -125,7 +125,7 @@ $students_count = $db->query(query: 'SELECT count(*) c FROM students WHERE class
                 <hr class="my-5">
                 <h1 class="text-2xl font-bold mb-2">Questions</h1>
                 <?php
-                while ($question = $questions->fetchArray()) { ?>
+                while ($question = $questions->fetch_assoc()) { ?>
                     <div class="py-2">
                         <div>
                             <?php if ($question['type'] == 'mcq') { ?>
@@ -139,7 +139,7 @@ $students_count = $db->query(query: 'SELECT count(*) c FROM students WHERE class
                             <?php } ?>
                         </div>
                         <div>
-                            <b>Question:</b> <?= $question['question_text'] ?> (<?= $question['points'] ?>p)
+                            <b>Question:</b> <span <?= $exam["is_rtl"] == 0 ? "dir='ltr'" : "dir='rtl'" ?>><?= $question['question_text'] ?></span> (<?= $question['points'] ?>p)
                         </div>
                         <div>
                             <b>Correct Answer:</b> <?= $question['correct_answer'] ?>
@@ -152,7 +152,7 @@ $students_count = $db->query(query: 'SELECT count(*) c FROM students WHERE class
                         <?php if ($question['type'] == 'matching_pairs') {
                             $pairs = [];
                             $pairss = $db->query("SELECT * FROM matching_pairs WHERE question_id = " . $question['id']);
-                            while ($pair = $pairss->fetchArray()) {
+                            while ($pair = $pairss->fetch_assoc()) {
                                 $pairs[$pair['id']] = $pair;
                             }
                         ?>
@@ -161,7 +161,9 @@ $students_count = $db->query(query: 'SELECT count(*) c FROM students WHERE class
                                 <?php foreach ($pairs as $id => $pair) {
                                     if ($pair['parent_id']) { ?>
                                         <div>
-                                            <?= $pair['text'] ?> => <?= $pairs[$pair['parent_id']]['text'] ?>
+                                            <span <?= $exam["is_rtl"] == 0 ? "dir='ltr'" : "dir='rtl'" ?>>
+                                                <?= $pair['text'] ?> => <?= $pairs[$pair['parent_id']]['text'] ?>
+                                            </span>
                                         </div>
                                 <?php }
                                 } ?>

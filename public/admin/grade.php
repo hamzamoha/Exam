@@ -1,15 +1,15 @@
 <?php
 include "check-admin.php";
-$id = SQLite3::escapeString($_GET['id']);
+$id = $db->real_escape_string($_GET['id']);
 $results = $db->query("SELECT * FROM exams WHERE id = '$id'");
-$exam = $results->fetchArray();
+$exam = $results->fetch_assoc();
 $questions = $db->query("SELECT * FROM questions WHERE exam_id = '$id' AND type = 'short_answer'");
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     foreach ($_POST as $key => $value) {
         if (preg_match("/^sub_\d+$/i", $key)) {
             $key = substr($key, 4);
-            $value = SQLite3::escapeString($value);
-            $db->exec("UPDATE submissions set score = '$value' WHERE id = '$key'");
+            $value = $db->real_escape_string($value);
+            $db->execute_query("UPDATE submissions set score = '$value' WHERE id = '$key'");
         }
     }
     exit(header("location: /admin/view.php?id=" . $_GET['id']));
@@ -50,7 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <h1 class="text-2xl font-bold">Grade: <?= $exam['title'] ?></h1>
                 <hr class="my-5">
                 <form action="?id=<?= $_GET['id'] ?>" method="post">
-                    <?php while ($question = $questions->fetchArray()) {
+                    <?php while ($question = $questions->fetch_assoc()) {
                         $submissions = $db->query("SELECT * FROM submissions WHERE score = -1 AND exam_id = '$id' AND question_id = " . $question['id']); ?>
                         <div>
                             <div class="text-lg"><b>Question: </b><?= $question['question_text'] ?></div>
@@ -63,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <?php while ($submission = $submissions->fetchArray()) { ?>
+                                    <?php while ($submission = $submissions->fetch_assoc()) { ?>
                                         <tr>
                                             <td class="px-4 py-3 border"><?= $submission['answer'] ?></td>
                                             <td class="px-4 py-3 border">

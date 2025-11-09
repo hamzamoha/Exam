@@ -1,10 +1,9 @@
 <?php
 session_start();
-$db = new SQLite3('../../db.db');
-$db->enableExceptions(true);
 if (isset($_SESSION['teacher'])) {
-    $teacher = SQLite3::escapeString($_SESSION['teacher']);
-    $teacher = $db->query("SELECT * from teachers WHERE id = '$teacher'")->fetchArray();
+    include "../db.php";
+    $teacher = $db->real_escape_string($_SESSION['teacher']);
+    $teacher = $db->query("SELECT * from teachers WHERE id = '$teacher'")->fetch_assoc();
     if (!$teacher) goto Red;
 } else {
     Red:

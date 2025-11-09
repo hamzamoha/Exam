@@ -1,6 +1,6 @@
 <?php
 include "check-admin.php";
-$exams = $db->query('SELECT * FROM exams left join (SELECT exam_id, count (Distinct student_id) count FROM submissions GROUP BY exam_id) on id = exam_id Where teacher_id = \'' . $teacher['id'] . "'");
+$exams = $db->query('SELECT * FROM exams left join (SELECT exam_id, count(Distinct student_id) AS scount FROM submissions GROUP BY exam_id) as s on s.exam_id = exams.id Where exams.teacher_id = ' . $teacher['id']);
 ?>
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -24,8 +24,7 @@ $exams = $db->query('SELECT * FROM exams left join (SELECT exam_id, count (Disti
                 <a class="ml-auto block py-2 px-4 bg-green-600 rounded text-white font-bold hover:bg-green-500" href="add.php">+ Add</a>
             </div>
             <div class="p-5 rounded-xl bg-white">
-                <?php if ($exams->fetchArray()) {
-                    $exams->reset(); ?>
+                <?php if ($exams->num_rows > 0) { ?>
                     <table class="w-full text-sm text-left rtl:text-right text-gray-400">
                         <thead class="text-xs uppercase bg-gray-50 dark:bg-gray-700 text-gray-400">
                             <tr>
@@ -38,14 +37,14 @@ $exams = $db->query('SELECT * FROM exams left join (SELECT exam_id, count (Disti
                             </tr>
                         </thead>
                         <tbody>
-                            <?php while ($exam = $exams->fetchArray()) {
-                                $students_count = $db->query(query: 'SELECT count(*) c FROM students WHERE class in (SELECT class FROM exams_class WHERE exam_id = ' . $exam["id"] . ')')->fetchArray()['c'];
+                            <?php while ($exam = $exams->fetch_assoc()) {
+                                $students_count = $db->query(query: 'SELECT count(*) c FROM students WHERE class in (SELECT class FROM exams_class WHERE exam_id = ' . $exam["id"] . ')')->fetch_assoc()['c'];
                             ?>
                                 <tr class="border-b bg-gray-800 border-gray-700">
                                     <th class="px-6 py-4 font-medium whitespace-nowrap text-white"><?= $exam['id'] ?></th>
                                     <td class="px-6 py-4"><?= $exam['title'] ?></td>
                                     <td class="px-6 py-4" dir="ltr">
-                                        <?= ($exam['count'] ?? 0) . ' / ' . $students_count ?>
+                                        <?= ($exam['scount'] ?? 0) . ' / ' . $students_count ?>
                                     </td>
                                     <td class="px-6 py-4">
                                         <div class="has-[:checked]:bg-blue-400 has-[:checked]:pl-[22px] h-5 w-10 rounded-full bg-gray-500 transition-all block flex p-0.5">

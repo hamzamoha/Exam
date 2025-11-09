@@ -5,8 +5,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if ($student['password'] == $_POST['current_password']) {
             if ($_POST['new_password'] == $_POST['new_password_confirmation']) {
                 if (strlen($_POST['new_password']) > 0) {
-                    $new_password = SQLite3::escapeString($_POST['new_password']);
-                    $db->exec("UPDATE students SET password = '$new_password' WHERE id = " . $student['id']);
+                    $new_password =  $db->real_escape_string($_POST['new_password']);
+                    $db->execute_query("UPDATE students SET password = '$new_password' WHERE id = " . $student['id']);
+                    $db->close();
                     $message = "Le mot de passe a été modifié avec succès!";
                 } else $error = "Le mot de passe ne peut être vide!";
             } else $error = "Confirmation de nouveau mot de passe incorrect!";
@@ -15,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 }
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="rtl">
 
 <head>
     <meta charset="UTF-8">

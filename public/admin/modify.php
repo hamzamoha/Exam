@@ -1,24 +1,24 @@
 <?php
 include "check-admin.php";
-$exam_id = SQLite3::escapeString($_GET['id']);
-$exam = $db->query("SELECT * FROM exams WHERE id = '$exam_id'")->fetchArray();
+$exam_id = $db->real_escape_string($_GET['id']);
+$exam = $db->query("SELECT * FROM exams WHERE id = '$exam_id'")->fetch_assoc();
 if (!$exam || $exam['teacher_id'] != $teacher['id']) exit(header("location: /admin/exams.php"));
 $teacher_classes = $db->query("SELECT * FROM teachers_class WHERE teacher_id = '" . $teacher['id'] . "'");
 $exam_classes1 = $db->query("SELECT * FROM exams_class WHERE exam_id = '$exam_id'");
 $exam_classes = [];
-while ($class = $exam_classes1->fetchArray()) $exam_classes[] = $class['class'];
+while ($class = $exam_classes1->fetch_assoc()) $exam_classes[] = $class['class'];
 unset($exam_classes1);
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $title = SQLite3::escapeString($_POST['title']);
-    $description = SQLite3::escapeString($_POST['description']);
-    $duration_minutes = SQLite3::escapeString($_POST['duration']);
-    $db->exec("DELETE FROM exams_class WHERE exam_id = '$exam_id'");
+    $title = $db->real_escape_string($_POST['title']);
+    $description = $db->real_escape_string($_POST['description']);
+    $duration_minutes = $db->real_escape_string($_POST['duration']);
+    $db->execute_query("DELETE FROM exams_class WHERE exam_id = '$exam_id'");
     $classes = $_POST['class'];
     foreach ($classes as $class) {
-        $class = SQLite3::escapeString($class);
-        $db->exec("INSERT INTO exams_class (exam_id, class) SELECT '$exam_id', class FROM teachers_class WHERE class = '$class' AND teacher_id = '" . $teacher['id'] . "'");
+        $class = $db->real_escape_string($class);
+        $db->execute_query("INSERT INTO exams_class (exam_id, class) SELECT '$exam_id', class FROM teachers_class WHERE class = '$class' AND teacher_id = '" . $teacher['id'] . "'");
     }
-    $db->exec("UPDATE exams SET title = '$title', description = '$description', duration_minutes = '$duration_minutes' WHERE id = '$exam_id'");
+    $db->execute_query("UPDATE exams SET title = '$title', description = '$description', duration_minutes = '$duration_minutes' WHERE id = '$exam_id'");
     exit(header("location: /admin/view.php?id=$exam_id"));
 }
 ?>
@@ -60,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <div class="my-6">
                         <div class="font-bold py-1 text-gray-500">Classes</div>
                         <div class="flex py-2 gap-5 flex-wrap">
-                            <?php while ($class = $teacher_classes->fetchArray()) { ?>
+                            <?php while ($class = $teacher_classes->fetch_assoc()) { ?>
                                 <label for="class_<?= $class['class'] ?>" class="select-none block p-2 rounded cursor-pointer bg-slate-100 has-[:checked]:bg-emerald-400 has-[:checked]:text-white"><?= $class['class'] ?><input<?= in_array($class['class'], $exam_classes) ? " checked" : "" ?> type="checkbox" class="hidden" name="class[]" id="class_<?= $class['class'] ?>" value="<?= htmlspecialchars($class['class']) ?>"></label>
                             <?php } ?>
                         </div>

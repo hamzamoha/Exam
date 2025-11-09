@@ -1,7 +1,7 @@
 <?php
 include "check-admin.php";
 if (isset($_GET['class'])) {
-    $class = SQLite3::escapeString($_GET['class']);
+    $class = $db->real_escape_string($_GET['class']);
     $students = $db->query("SELECT * FROM students where class = '$class' AND class in (SELECT distinct class from teachers_class where teacher_id = '$teacher[id]')");
 }
 $classes = $db->query('SELECT class FROM students group by class having class in (SELECT distinct class from teachers_class where teacher_id = \'' . $teacher['id'] . '\')'); ?>
@@ -32,7 +32,7 @@ $classes = $db->query('SELECT class FROM students group by class having class in
             <form action="?" class="bg-white p-5 rounded-xl flex justify-center items-center text-center gap-5 mb-5">
                 <select name="class" id="class" class="py-2 px-2 w-32 bg-gray-200 rounded">
                     <option selected disabled>--</option>
-                    <?php while ($class = $classes->fetchArray()) { ?>
+                    <?php while ($class = $classes->fetch_assoc()) { ?>
                         <option value="<?= htmlspecialchars($class['class']) ?>"><?= $class['class'] ?></option>
                     <?php } ?>
                 </select>
@@ -53,7 +53,7 @@ $classes = $db->query('SELECT class FROM students group by class having class in
                     </thead>
                     <tbody>
                         <?php $c = 1;
-                        while ($student = $students->fetchArray()) { ?>
+                        while ($student = $students->fetch_assoc()) { ?>
                             <tr class="border-b bg-gray-800 border-gray-700">
                                 <th class="px-6 py-4 font-medium whitespace-nowrap text-white"><?= $c++ ?></th>
                                 <td class="px-6 py-4"><?= $student['student_number'] ?></td>

@@ -1,18 +1,19 @@
 <?php
 include "check-login.php";
-$exam_id = SQLite3::escapeString($_GET['id']);
+$exam_id = $db->real_escape_string($_GET['id']);
 $student_id = $student['id'];
 $results = $db->query("SELECT * FROM (SELECT exam_id, sum(score) s, sum(points) p FROM (SELECT question_id, score FROM submissions WHERE student_id = '$student_id') sub JOIN (SELECT id, exam_id, points FROM questions) qst ON question_id = id GROUP BY exam_id) JOIN exams ON exams.id = exam_id  WHERE exams.id = '$exam_id' AND exams.graded = 1 AND exams.id IN (SELECT DISTINCT exam_id FROM submissions WHERE student_id = '$student_id')");
-if (!($exam = $results->fetchArray())) header('location: /');
+if (!($exam = $results->fetch_assoc())) header('location: /');
 $questions = $db->query("SELECT * FROM questions JOIN (SELECT question_id, student_id, score, answer FROM submissions) ON questions.id = question_id WHERE questions.exam_id = '$exam_id' AND student_id = '$student_id'");
+$questions2 = $questions;
 $to_connect = [
     "correct" => [],
     "answer" => []
 ];
-while ($question = $questions->fetchArray()) {
+while ($question = $questions->fetch_assoc()) {
     if ($question['type'] == 'matching_pairs') {
         $right = $db->query("SELECT * FROM matching_pairs WHERE parent_id > 0 AND question_id = " . $question['id'] . " ORDER BY RANDOM()");
-        while ($ele = $right->fetchArray()) {
+        while ($ele = $right->fetch_assoc()) {
             $to_connect["correct"][$ele['id']] = $ele['parent_id'];
         }
         foreach (json_decode($question['answer']) as $key => $value) {
@@ -92,7 +93,7 @@ $to_connect = json_encode($to_connect);
                 <h1 class="text-3xl font-bold mb-2"><?= $exam['title'] ?></h1>
                 <hr class="my-5">
                 <?php $c = 1;
-                while ($question = $questions->fetchArray()) { ?>
+                while ($question = $questions2->fetch_assoc()) { ?>
                     <div class="py-2">
                         <h2 class="text-xl mb-2"><b>Question <?= $c++ ?>: </b><?= $question['question_text'] ?> (<?= $question['points'] ?>p)</h2>
                         <div class="flex flex-col gap-3 py-1.5">
@@ -110,7 +111,7 @@ $to_connect = json_encode($to_connect);
                                 <div class="flex gap-10">
                                     <div>
                                         <?php
-                                        while ($ele = $left->fetchArray()) { ?>
+                                        while ($ele = $left->fetch_assoc()) { ?>
                                             <div>
                                                 <div class="my-1 px-2 py-1 border rounded" data-id="<?= $ele['id'] ?>"><?= $ele['text'] ?></div>
                                             </div>
@@ -118,7 +119,7 @@ $to_connect = json_encode($to_connect);
                                     </div>
                                     <div>
                                         <?php
-                                        while ($ele = $right->fetchArray()) { ?>
+                                        while ($ele = $right->fetch_assoc()) { ?>
                                             <div>
                                                 <div class="my-1 px-2 py-1 border rounded" data-id="<?= $ele['id'] ?>"><?= $ele['text'] ?></div>
                                             </div>
@@ -132,7 +133,8 @@ $to_connect = json_encode($to_connect);
                         </div>
                     </div>
                     <hr class="my-5">
-                <?php } ?>
+                <?php }
+                $db->close(); ?>
             </div>
         </div>
     </div>

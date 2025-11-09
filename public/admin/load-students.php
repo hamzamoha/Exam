@@ -3,35 +3,35 @@ include "check-admin.php";
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (isset($_POST['load'])) {
         $file = $_FILES["xlsx"];
-        include "../../SimpleXLSX.php";
+        include "../SimpleXLSX.php";
         if ($xlsx = SimpleXLSX::parse($file['tmp_name'])) {
-            $students_count = $db->query(query: 'SELECT count(*) c FROM students')->fetchArray()['c'];
+            $students_count = $db->query(query: 'SELECT count(*) c FROM students')->fetch_assoc()['c'];
             $sheets_count = $xlsx->sheetsCount();
             for ($i = 0; $i < $sheets_count; $i++) {
-                $class = SQLite3::escapeString($xlsx->rows($i)[7][2]);
+                $class = $db->real_escape_string($xlsx->rows($i)[7][2]);
                 $rows_count = count($xlsx->rows($i));
                 $query = "INSERT INTO students (student_number, first_name, last_name, gender, date_of_birth, place_of_birth, class) VALUES ";
                 for ($j = 10; $j < $rows_count; $j++) {
-                    $code_massar = SQLite3::escapeString($xlsx->rows($i)[$j][1]);
-                    $last_name = SQLite3::escapeString($xlsx->rows($i)[$j][2]);
-                    $first_name = SQLite3::escapeString($xlsx->rows($i)[$j][3]);
-                    $gender = SQLite3::escapeString($xlsx->rows($i)[$j][4]);
-                    $date_of_birth = SQLite3::escapeString($xlsx->rows($i)[$j][5]);
-                    $place_of_birth = SQLite3::escapeString($xlsx->rows($i)[$j][6]);
+                    $code_massar = $db->real_escape_string($xlsx->rows($i)[$j][1]);
+                    $last_name = $db->real_escape_string($xlsx->rows($i)[$j][2]);
+                    $first_name = $db->real_escape_string($xlsx->rows($i)[$j][3]);
+                    $gender = $db->real_escape_string($xlsx->rows($i)[$j][4]);
+                    $date_of_birth = $db->real_escape_string($xlsx->rows($i)[$j][5]);
+                    $place_of_birth = $db->real_escape_string($xlsx->rows($i)[$j][6]);
                     $query .= "('$code_massar', '$first_name', '$last_name', '$gender', '$date_of_birth', '$place_of_birth', '$class'), ";
                 }
                 $query = substr($query, 0, -2);
                 try {
-                    $db->exec($query);
+                    $db->execute_query($query);
                 } catch (Throwable $th) {
                 }
             }
-            $students_count = $db->query(query: 'SELECT count(*) c FROM students')->fetchArray()['c'] - $students_count;
+            $students_count = $db->query(query: 'SELECT count(*) c FROM students')->fetch_assoc()['c'] - $students_count;
         }
     }
 }
 if (isset($_GET['class'])) {
-    $class = SQLite3::escapeString($_GET['class']);
+    $class = $db->real_escape_string($_GET['class']);
     $students = $db->query("SELECT * FROM students where class = '$class'");
 }
 $classes = $db->query('SELECT class FROM students group by class'); ?>

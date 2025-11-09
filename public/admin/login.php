@@ -1,10 +1,9 @@
 <?php
 session_start();
-$db = new SQLite3('../../db.db');
-$db->enableExceptions(true);
+include "../db.php";
 if (isset($_SESSION['teacher'])) {
-    $id = SQLite3::escapeString($_SESSION['teacher']);
-    $id = $db->query("SELECT id from teachers WHERE id = '$id'")->fetchArray();
+    $id = $db->real_escape_string($_SESSION['teacher']);
+    $id = $db->query("SELECT id from teachers WHERE id = '$id'")->fetch_assoc();
     if ($id) {
         exit(header("location: /admin"));
     }
@@ -12,10 +11,10 @@ if (isset($_SESSION['teacher'])) {
 $err = 0;
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (isset($_POST['login'])) {
-        $username = SQLite3::escapeString($_POST['username']);
-        $password = SQLite3::escapeString($_POST['password']);
+        $username = $db->real_escape_string($_POST['username']);
+        $password = $db->real_escape_string($_POST['password']);
         $result = $db->query("SELECT id, username, password FROM teachers WHERE username = '$username'");
-        if ($user = $result->fetchArray()) {
+        if ($user = $result->fetch_assoc()) {
             if ($user['password'] == $password) {
                 $_SESSION['teacher'] = $user['id'];
                 header("location: /admin");
@@ -30,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Teacher Login</title>
     <link rel="stylesheet" href="/style.css">
 </head>
 

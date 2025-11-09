@@ -1,10 +1,10 @@
 <?php
 include "check-admin.php";
-$students_count = $db->query(query: 'SELECT count(*) c FROM students')->fetchArray()['c'];
-$exams_count = $db->query(query: 'SELECT count(*) c FROM exams where teacher_id = \'' . $teacher['id'] . "'")->fetchArray()['c'];
-$classes_count = $db->query(query: 'SELECT count(distinct class) c FROM students')->fetchArray()['c'];
-$age_count = $db->query("SELECT strftime('%Y', 'now') - strftime('%Y', date_of_birth) - (strftime('%m-%d', 'now') < strftime('%m-%d', date_of_birth)) AS age, COUNT(*) AS count FROM students GROUP BY age");
-$max = $db->query("SELECT MAX(student_count) AS max FROM (SELECT strftime('%Y', 'now') - strftime('%Y', date_of_birth) - (strftime('%m-%d', 'now') < strftime('%m-%d', date_of_birth)) AS age, COUNT(*) AS student_count FROM students GROUP BY age)")->fetchArray()['max'];
+$students_count = $db->query(query: 'SELECT count(*) c FROM students')->fetch_assoc()['c'];
+$exams_count = $db->query(query: 'SELECT count(*) c FROM exams where teacher_id = \'' . $teacher['id'] . "'")->fetch_assoc()['c'];
+$classes_count = $db->query(query: 'SELECT count(distinct class) c FROM students')->fetch_assoc()['c'];
+$age_count = $db->query("SELECT DATE_FORMAT(NOW(), '%Y') - DATE_FORMAT(date_of_birth, '%Y') - (DATE_FORMAT(NOW(), '%m-%d') < DATE_FORMAT(date_of_birth, '%m-%d')) AS age, COUNT(*) AS count FROM students GROUP BY age");
+$max = $db->query("SELECT MAX(student_count) AS max FROM (SELECT DATE_FORMAT(NOW(), '%Y') - DATE_FORMAT(date_of_birth, '%Y') - (DATE_FORMAT(NOW(), '%m-%d') < DATE_FORMAT(date_of_birth, '%m-%d')) AS age, COUNT(*) AS student_count FROM students GROUP BY age) AS t")->fetch_assoc()['max'];
 $gender_count = $db->query("SELECT gender, COUNT(*) AS count FROM students GROUP BY gender");
 ?>
 <!DOCTYPE html>
@@ -58,7 +58,7 @@ $gender_count = $db->query("SELECT gender, COUNT(*) AS count FROM students GROUP
                                     <table class="charts-css pie show-heading">
                                         <tbody>
                                             <?php $start = 0;
-                                            while ($rec = $gender_count->fetchArray()) { ?>
+                                            while ($rec = $gender_count->fetch_assoc()) { ?>
                                                 <tr>
                                                     <td style="--start: <?= $start ?>; --end: <?= $start += $percent = round(intval($rec['count']) / intval($students_count), 2) ?>;"><span class="data"><?= $percent * 100 ?>%</span></td>
                                                 </tr>
@@ -67,7 +67,7 @@ $gender_count = $db->query("SELECT gender, COUNT(*) AS count FROM students GROUP
                                     </table>
                                 </div>
                                 <ul class="charts-css legend legend-rectangle legend-inline justify-center flex-row-reverse">
-                                    <?php while ($rec = $gender_count->fetchArray()) { ?>
+                                    <?php while ($rec = $gender_count->fetch_assoc()) { ?>
                                         <li><?= $rec['gender'] ?></li>
                                     <?php } ?>
                                 </ul>
@@ -79,7 +79,7 @@ $gender_count = $db->query("SELECT gender, COUNT(*) AS count FROM students GROUP
                                     <div class="text-center mb-2">المتعلمين حسب العمر</div>
                                     <table class="charts-css column show-labels" style="--aspect-ratio: 1/1">
                                         <tbody>
-                                            <?php while ($rec = $age_count->fetchArray()) { ?>
+                                            <?php while ($rec = $age_count->fetch_assoc()) { ?>
                                                 <tr>
                                                     <th scope="row"><?= $rec['age'] ?></th>
                                                     <td style="--size: <?= round(intval($rec['count']) / intval($max), 2) ?>"></td>
@@ -94,7 +94,7 @@ $gender_count = $db->query("SELECT gender, COUNT(*) AS count FROM students GROUP
                             <div class="flex justify-center flex-wrap">
                                 <?php
                                 $classes = $db->query("SELECT distinct class from students");
-                                while ($class = $classes->fetchArray()) {
+                                while ($class = $classes->fetch_assoc()) {
                                     $class = $class["class"]; ?>
                                     <div class="w-1/6 p-0.5">
                                         <div class="p-5 rounded border bg-gray-100">
@@ -103,8 +103,8 @@ $gender_count = $db->query("SELECT gender, COUNT(*) AS count FROM students GROUP
                                                 <tbody>
                                                     <?php $start = 0;
                                                     $gender_count = $db->query("SELECT gender, COUNT(*) AS count FROM students GROUP BY gender, class having class = '$class'");
-                                                    $students_count = $db->query("SELECT count(*) c FROM students WHERE class = '$class'")->fetchArray()['c'];
-                                                    while ($rec = $gender_count->fetchArray()) { ?>
+                                                    $students_count = $db->query("SELECT count(*) c FROM students WHERE class = '$class'")->fetch_assoc()['c'];
+                                                    while ($rec = $gender_count->fetch_assoc()) { ?>
                                                         <tr>
                                                             <td style="--start: <?= $start ?>; --end: <?= $start += $percent = round(intval($rec['count']) / intval($students_count), 2) ?>;"><span class="data"><?= $percent * 100 ?>%</span></td>
                                                         </tr>
@@ -121,7 +121,7 @@ $gender_count = $db->query("SELECT gender, COUNT(*) AS count FROM students GROUP
                             <div class="flex justify-center flex-wrap">
                                 <?php
                                 $classes = $db->query("SELECT distinct class from students");
-                                while ($class = $classes->fetchArray()) {
+                                while ($class = $classes->fetch_assoc()) {
                                     $class = $class["class"]; ?>
                                     <div class="w-1/6 p-0.5">
                                         <div class="p-5 rounded border bg-gray-100">
@@ -129,9 +129,9 @@ $gender_count = $db->query("SELECT gender, COUNT(*) AS count FROM students GROUP
                                             <table class="charts-css column show-labels" style="--aspect-ratio: 1/1">
                                                 <tbody>
                                                     <?php
-                                                    $age_count = $db->query("SELECT strftime('%Y', 'now') - strftime('%Y', date_of_birth) - (strftime('%m-%d', 'now') < strftime('%m-%d', date_of_birth)) AS age, COUNT(*) AS count FROM students GROUP BY age, class HAVING class = '$class'");
-                                                    $max = $db->query("SELECT MAX(student_count) AS max FROM (SELECT strftime('%Y', 'now') - strftime('%Y', date_of_birth) - (strftime('%m-%d', 'now') < strftime('%m-%d', date_of_birth)) AS age, COUNT(*) AS student_count FROM students GROUP BY age, class HAVING class = '$class')")->fetchArray()['max'];
-                                                    while ($rec = $age_count->fetchArray()) { ?>
+                                                    $age_count = $db->query("SELECT DATE_FORMAT(NOW(), '%Y') - DATE_FORMAT(date_of_birth, '%Y') - (DATE_FORMAT(NOW(), '%m-%d') < DATE_FORMAT(date_of_birth, '%m-%d')) AS age, COUNT(*) AS count FROM students GROUP BY age, class HAVING class = '$class'");
+                                                    $max = $db->query("SELECT MAX(student_count) AS max FROM (SELECT DATE_FORMAT(NOW(), '%Y') - DATE_FORMAT(date_of_birth, '%Y') - (DATE_FORMAT(NOW(), '%m-%d') < DATE_FORMAT(date_of_birth, '%m-%d')) AS age, COUNT(*) AS student_count FROM students GROUP BY age, class HAVING class = '$class') AS t")->fetch_assoc()['max'];
+                                                    while ($rec = $age_count->fetch_assoc()) { ?>
                                                         <tr>
                                                             <th scope="row" class="text-[10px]"><?= $rec['age'] ?></th>
                                                             <td style="--size: <?= round(intval($rec['count']) / intval($max), 2) ?>"></td>

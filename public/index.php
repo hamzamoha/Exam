@@ -1,20 +1,28 @@
 <?php
 session_start();
 $err = 0;
-$db = new SQLite3('../db.db');
+include "db.php";
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (isset($_POST['login'])) {
-        $username = SQLite3::escapeString($_POST['username']);
-        $password = SQLite3::escapeString($_POST['password']);
-        $result = $db->query("SELECT student_number, password FROM students WHERE student_number = '$username'");
-        if ($user = $result->fetchArray()) {
+        $username = $db->real_escape_string($_POST['username']);
+        $password = $db->real_escape_string($_POST['password']);
+        $sql = "SELECT student_number, password FROM students WHERE student_number = '$username'";
+        $result = $db->query($sql);
+        if ($result && $result->num_rows > 0) {
+            $user = $result->fetch_assoc();
             if ($user['password'] == $password) {
                 $_SESSION['student'] = $user['student_number'];
-            } else $err = 2; // pass
-        } else $err = 1; // user
+            } else {
+                $err = 2; // wrong password
+            }
+        } else {
+            $err = 1; // user not found
+        }
     }
-    //exit(header("location: /"));
 }
+
+
+
 ?>
 <!DOCTYPE html>
 <html lang="en" dir="rtl">
@@ -31,10 +39,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             body {
                 background: #fafafa;
             }
-            </style>
+        </style>
     <?php
     } else {
-        ?>
+    ?>
         <style>
             body {
                 background: linear-gradient(133.64deg, #5c61a3, #105ba6 100%, #09203f 0);
@@ -53,18 +61,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <body>
     <?php
     if (isset($_SESSION['student'])) {
-        $res = $db->query("SELECT * FROM students WHERE student_number = '" . SQLite3::escapeString($_SESSION['student']) . "'");
-        if ($student = $res->fetchArray()) {
+
+        $student = $db->real_escape_string($_SESSION['student']);
+        $res = $db->query("SELECT * FROM students WHERE student_number = '$student'");
+
+        if ($student = $res->fetch_assoc()) {
             $student_id = $student['id'];
             $exams_topass = $db->query('SELECT exams.*, class FROM exams LEFT JOIN exams_class ON exams.id = exam_id WHERE visible = 1 AND exam_id NOT IN (SELECT DISTINCT exam_id FROM submissions WHERE student_id = ' . $student['id'] . ') AND class = \'' . $student['class'] . '\'');
-            $exams_passed = $db->query("SELECT * FROM (SELECT exam_id, sum(score) s, sum(points) p FROM (SELECT question_id, score FROM submissions WHERE student_id = '$student_id') sub JOIN (SELECT id, exam_id, points FROM questions) qst ON question_id = id GROUP BY exam_id) JOIN exams ON exams.id = exam_id  WHERE exams.id IN (SELECT DISTINCT exam_id FROM submissions WHERE student_id = '$student_id') AND exams.id in (SELECT distinct exam_id FROM exams_class WHERE class = '$student[class]')");
+            $exams_passed = $db->query("SELECT e.*, SUM(s.score) AS total_score, SUM(q.points) AS total_points FROM submissions s JOIN questions q ON s.question_id = q.id JOIN exams e ON q.exam_id = e.id JOIN exams_class ec ON e.id = ec.exam_id WHERE s.student_id = '$student_id' AND ec.class = '$student[class]' GROUP BY e.id;");
             include "topnav.php"; ?>
             <div class="p-5">
                 <div class="bg-white border p-8 shadow-lg">
                     <h2 class="text-4xl mb-5">الاختبارات</h2>
                     <div class="grid grid-cols-4 gap-8">
-                        <?php while ($exam = $exams_topass->fetchArray()) { 
-                            $subject = $db->query("SELECT subject FROM teachers WHERE id = '$exam[teacher_id]'")->fetchArray()['subject'] ?>
+                        <?php while ($exam = $exams_topass->fetch_assoc()) {
+                            $subject = $db->query("SELECT subject FROM teachers WHERE id = '$exam[teacher_id]'")->fetch_assoc()['subject']; ?>
                             <div class="border bg-slate-100 rounded p-3 border-slate-300 shadow">
                                 <h2 class="py-1 text-xl font-bold"><?= $exam['title'] ?></h2>
                                 <h3 class="font-semibold text-gray-500"><?= $subject ?></h3>
@@ -81,8 +92,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <div class="bg-white border p-8 shadow-lg">
                     <h2 class="text-4xl mb-5">النتائج</h2>
                     <div class="grid grid-cols-4 gap-8">
-                        <?php while ($exam = $exams_passed->fetchArray()) {
-                            $subject = $db->query("SELECT subject FROM teachers WHERE id = '$exam[teacher_id]'")->fetchArray()['subject'] ?>
+                        <?php while ($exam = $exams_passed->fetch_assoc()) {
+                            $subject = $db->query("SELECT subject FROM teachers WHERE id = '$exam[teacher_id]'")->fetch_assoc()['subject']; ?>
                             <div class="border bg-slate-100 rounded p-3 border-slate-300 shadow">
                                 <h2 class="py-1 text-xl font-bold"><?= $exam['title'] ?></h2>
                                 <h3 class="font-semibold text-gray-500"><?= $subject ?></h3>
@@ -132,7 +143,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             </div>
         </div>
     <?php }
-    ?>
+    $db->close(); ?>
 
 </body>
 

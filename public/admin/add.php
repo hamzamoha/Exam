@@ -2,15 +2,15 @@
 include "check-admin.php";
 $teacher_classes = $db->query("SELECT * FROM teachers_class WHERE teacher_id = '" . $teacher['id'] . "'");
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $title = SQLite3::escapeString($_POST['title']);
-    $description = SQLite3::escapeString($_POST['description']);
-    $duration_minutes = SQLite3::escapeString($_POST['duration']);
-    $db->exec("INSERT INTO exams (title, description, duration_minutes, teacher_id) VALUES ('$title','$description','$duration_minutes', '" . $teacher['id'] . "')");
-    $exam_id = $db->lastInsertRowID();
+    $title = $db->real_escape_string($_POST['title']);
+    $description = $db->real_escape_string($_POST['description']);
+    $duration_minutes = $db->real_escape_string($_POST['duration']);
+    $db->execute_query("INSERT INTO exams (title, description, duration_minutes, teacher_id) VALUES ('$title','$description','$duration_minutes', '" . $teacher['id'] . "')");
+    $exam_id = $db->insert_id;
     $classes = $_POST['class'];
     foreach ($classes as $class) {
-        $class = SQLite3::escapeString($class);
-        $db->exec("INSERT INTO exams_class (exam_id, class) SELECT '$exam_id', class FROM teachers_class WHERE class = '$class' AND teacher_id = '" . $teacher['id'] . "'");
+        $class = $db->real_escape_string($class);
+        $db->execute_query("INSERT INTO exams_class (exam_id, class) SELECT '$exam_id', class FROM teachers_class WHERE class = '$class' AND teacher_id = '" . $teacher['id'] . "'");
     }
     exit(header("location: /admin/edit.php?id=$exam_id"));
 }
@@ -53,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <div class="my-6">
                         <div class="font-bold py-1 text-gray-500">Classes</div>
                         <div class="flex py-2 gap-5 flex-wrap">
-                            <?php while ($class = $teacher_classes->fetchArray()) { ?>
+                            <?php while ($class = $teacher_classes->fetch_assoc()){ ?>
                                 <label for="class_<?= $class['class'] ?>" class="select-none block p-2 rounded cursor-pointer bg-slate-100 has-[:checked]:bg-emerald-400 has-[:checked]:text-white"><?= $class['class'] ?><input type="checkbox" class="hidden" name="class[]" id="class_<?= $class['class'] ?>" value="<?= htmlspecialchars($class['class']) ?>"></label>
                             <?php } ?>
                         </div>

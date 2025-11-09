@@ -1,8 +1,8 @@
 <?php
 include "check-admin.php";
-$results = $db->query('SELECT * FROM sessions JOIN (SELECT first_name, last_name, id as student_id from students) s on s.student_id = sessions.student_id JOIN (SELECT id as exam_id, title, duration_minutes FROM exams) e ON e.exam_id = sessions.exam_id LEFT JOIN (SELECT exam_id eid, student_id sid FROM submissions GROUP BY exam_id, student_id) ON sid = sessions.student_id AND eid = sessions.exam_id ORDER BY id DESC');
+$results = $db->query('SELECT * FROM sessions JOIN (SELECT first_name, last_name, id as student_id from students) as s on s.student_id = sessions.student_id JOIN (SELECT id as exam_id, title, duration_minutes FROM exams) as e ON e.exam_id = sessions.exam_id LEFT JOIN (SELECT exam_id eid, student_id as sid FROM submissions GROUP BY exam_id, student_id) as r ON r.sid = sessions.student_id AND eid = sessions.exam_id ORDER BY id DESC');
 $sessions = [];
-while ($session = $results->fetchArray()) {
+while ($session = $results->fetch_assoc()) {
     foreach ($session as $key => $value) $session[strtolower($key)] = $value;
     $sessions[$session['title']][] = $session;
 }
@@ -46,7 +46,7 @@ while ($session = $results->fetchArray()) {
                                         <td class="px-6 py-4"><?= $session['first_name'] ?></td>
                                         <td class="px-6 py-4"><?= $session['last_name'] ?></td>
                                         <td class="px-6 py-4"><?= date("H:i:s d/m/Y", $session['start_at']) ?></td>
-                                        <td class="px-6 py-4" <?= (($remaining_timestamp = intval($session["END_AT"]) - time()) < 0) ? "" : "data-timestamp=\"$remaining_timestamp\"" ?>><?= (($remaining_timestamp = intval($session["END_AT"]) - time()) < 0) ? "Time's Up" : intdiv($remaining_timestamp, 3600) . ":" . intdiv($remaining_timestamp % 3600, 60) . ":" . $remaining_timestamp % 60 ?></td>
+                                        <td class="px-6 py-4" <?= (($remaining_timestamp = intval($session["end_at"]) - time()) < 0) ? "" : "data-timestamp=\"$remaining_timestamp\"" ?>><?= (($remaining_timestamp = intval($session["end_at"]) - time()) < 0) ? "Time's Up" : intdiv($remaining_timestamp, 3600) . ":" . intdiv($remaining_timestamp % 3600, 60) . ":" . $remaining_timestamp % 60 ?></td>
                                         <td class="px-6 py-4">
                                             <?php if ($session['eid']) { ?>
                                                 <span class="text-teal-500 font-bold">Submitted</span>
