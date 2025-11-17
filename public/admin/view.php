@@ -96,11 +96,11 @@ $students_count = $db->query(query: 'SELECT count(*) c FROM students WHERE class
             <?php } ?>
             <div class="bg-white p-8 rounded-xl">
                 <div class="mb-5 flex gap-5">
-                    <a class="block py-2 text-sm px-5 rounded-full bg-orange-500 text-white flex items-center" href="modify.php?id=<?= $exam['id'] ?>">
+                    <a class="py-2 text-sm px-5 rounded-full bg-orange-500 text-white flex items-center" href="modify.php?id=<?= $exam['id'] ?>">
                         <span class="icon-pencil mr-2 text-white"></span>
                         Modify
                     </a>
-                    <a class="block py-2 text-sm px-5 rounded-full bg-lime-600 text-white flex items-center" href="edit.php?id=<?= $exam['id'] ?>">
+                    <a class="py-2 text-sm px-5 rounded-full bg-lime-600 text-white flex items-center" href="edit.php?id=<?= $exam['id'] ?>">
                         <span class="icon-edit-list mr-2 text-white"></span>
                         Edit Questions
                     </a>
